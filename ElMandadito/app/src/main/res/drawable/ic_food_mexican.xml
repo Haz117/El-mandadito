@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp" android:height="32dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <!-- Taco shape -->
+    <path android:fillColor="#C62828"
+        android:pathData="M50,15 C30,15 12,28 8,45 L92,45 C88,28 70,15 50,15 Z"/>
+    <path android:fillColor="#F4D35E"
+        android:pathData="M8,45 Q15,70 30,75 L70,75 Q85,70 92,45 Z"/>
+    <path android:fillColor="#388E3C"
+        android:pathData="M20,50 Q35,42 50,48 Q65,42 80,50 Q65,38 50,44 Q35,38 20,50Z"/>
+    <path android:fillColor="#FF8A65" android:pathData="M33,58 A5,4 0 1 0 43,58 A5,4 0 1 0 33,58 Z"/>
+    <path android:fillColor="#FF8A65" android:pathData="M51,60 A4,3 0 1 0 59,60 A4,3 0 1 0 51,60 Z"/>
+    <path android:fillColor="#FF8A65" android:pathData="M61,55 A4,3 0 1 0 69,55 A4,3 0 1 0 61,55 Z"/>
+</vector>

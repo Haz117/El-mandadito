@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <!-- Scroll content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Toolbar with hero gradient (no separation) -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@drawable/bg_hero"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="@color/on_primary"
+            app:titleTextColor="@color/on_primary"
+            app:titleTextAppearance="@style/TextAppearance.Toolbar" />
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/nested_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Hero — seamlessly extends toolbar gradient -->
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp">
+
+                    <View
+                        android:id="@+id/view_hero_bg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <!-- Large decorative circle top-right -->
+                    <View
+                        android:layout_width="240dp"
+                        android:layout_height="240dp"
+                        android:layout_gravity="top|end"
+                        android:layout_marginTop="-60dp"
+                        android:layout_marginEnd="-60dp"
+                        android:background="@drawable/bg_frosted_pill"
+                        android:alpha="0.06" />
+
+                    <!-- Small decorative circle bottom-left -->
+                    <View
+                        android:layout_width="130dp"
+                        android:layout_height="130dp"
+                        android:layout_gravity="bottom|start"
+                        android:layout_marginStart="-30dp"
+                        android:layout_marginBottom="-30dp"
+                        android:background="@drawable/bg_frosted_pill"
+                        android:alpha="0.08" />
+
+                    <!-- Bottom scrim for card overlap -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:layout_gravity="bottom"
+                        android:background="@drawable/bg_image_scrim" />
+
+                    <!-- Restaurant food image -->
+                    <ImageView
+                        android:id="@+id/img_hero_food"
+                        android:layout_width="160dp"
+                        android:layout_height="160dp"
+                        android:layout_gravity="center"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="@null"
+                        android:elevation="2dp" />
+                </FrameLayout>
+
+                <!-- Restaurant info card — overlaps hero -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="-28dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="10dp"
+                    app:cardBackgroundColor="@color/surface"
+                    app:strokeColor="@color/card_stroke"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <!-- Name + status -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:id="@+id/text_restaurant_name"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:textColor="@color/brown_dark"
+                                android:textSize="22sp"
+                                android:textStyle="bold" />
+
+                            <LinearLayout
+                                android:id="@+id/layout_detail_status"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_open_badge"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="5dp"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <View
+                                    android:id="@+id/dot_detail_status"
+                                    android:layout_width="7dp"
+                                    android:layout_height="7dp"
+                                    android:background="#2E7D32"
+                                    android:layout_marginEnd="5dp" />
+
+                                <TextView
+                                    android:id="@+id/text_detail_status"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Abierto"
+                                    android:textColor="#2E7D32"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@color/divider"
+                            android:layout_marginTop="14dp"
+                            android:layout_marginBottom="14dp" />
+
+                        <!-- Stat chips row (Rating / Time / Fee) -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <!-- Rating -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:background="@drawable/bg_meta_row"
+                                android:paddingVertical="10dp"
+                                android:layout_marginEnd="6dp">
+                                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                    android:orientation="horizontal" android:gravity="center_vertical">
+                                    <ImageView android:layout_width="14dp" android:layout_height="14dp"
+                                        android:src="@drawable/ic_star" android:contentDescription="@null"/>
+                                    <TextView android:id="@+id/text_rating" android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content" android:layout_marginStart="4dp"
+                                        android:textColor="@color/brown_dark" android:textSize="15sp" android:textStyle="bold"/>
+                                </LinearLayout>
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                    android:text="Calificación" android:textColor="@color/text_secondary" android:textSize="11sp"
+                                    android:layout_marginTop="2dp"/>
+                            </LinearLayout>
+
+                            <!-- Time -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:background="@drawable/bg_meta_row"
+                                android:paddingVertical="10dp"
+                                android:layout_marginEnd="6dp">
+                                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                    android:orientation="horizontal" android:gravity="center_vertical">
+                                    <ImageView android:layout_width="14dp" android:layout_height="14dp"
+                                        android:src="@drawable/ic_clock" android:tint="@color/text_secondary"
+                                        android:contentDescription="@null"/>
+                                    <TextView android:id="@+id/text_time" android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content" android:layout_marginStart="4dp"
+                                        android:textColor="@color/brown_dark" android:textSize="13sp" android:textStyle="bold"/>
+                                </LinearLayout>
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                    android:text="Entrega" android:textColor="@color/text_secondary" android:textSize="11sp"
+                                    android:layout_marginTop="2dp"/>
+                            </LinearLayout>
+
+                            <!-- Delivery fee -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:background="@drawable/bg_meta_row"
+                                android:paddingVertical="10dp">
+                                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                    android:orientation="horizontal" android:gravity="center_vertical">
+                                    <ImageView android:layout_width="14dp" android:layout_height="14dp"
+                                        android:src="@drawable/ic_delivery" android:tint="@color/success"
+                                        android:contentDescription="@null"/>
+                                    <TextView android:id="@+id/text_delivery_fee" android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content" android:layout_marginStart="4dp"
+                                        android:textColor="@color/success" android:textSize="13sp" android:textStyle="bold"/>
+                                </LinearLayout>
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                    android:text="Envío" android:textColor="@color/text_secondary" android:textSize="11sp"
+                                    android:layout_marginTop="2dp"/>
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Menu section header + search -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:paddingHorizontal="20dp" android:paddingTop="24dp" android:paddingBottom="12dp">
+
+                    <View android:layout_width="4dp" android:layout_height="22dp"
+                        android:background="@color/accent" android:layout_marginEnd="10dp" />
+
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="Menú"
+                        android:textColor="@color/brown_dark" android:textSize="19sp" android:textStyle="bold" />
+
+                    <LinearLayout android:layout_width="0dp" android:layout_height="40dp"
+                        android:layout_weight="1.4" android:background="@drawable/bg_menu_search"
+                        android:orientation="horizontal" android:paddingHorizontal="10dp"
+                        android:gravity="center_vertical">
+
+                        <ImageView android:layout_width="15dp" android:layout_height="15dp"
+                            android:src="@drawable/ic_search" android:contentDescription="@null"
+                            android:tint="@color/text_secondary" />
+
+                        <EditText android:id="@+id/edit_menu_search"
+                            android:layout_width="0dp" android:layout_height="match_parent"
+                            android:layout_weight="1" android:background="@null"
+                            android:hint="Buscar platillo..." android:textColorHint="#BDBDBD"
+                            android:textColor="@color/brown_dark" android:textSize="12sp"
+                            android:paddingStart="6dp" android:singleLine="true"
+                            android:imeOptions="actionSearch" android:inputType="text" />
+
+                        <ImageView android:id="@+id/btn_clear_menu_search"
+                            android:layout_width="18dp" android:layout_height="18dp"
+                            android:src="@drawable/ic_close" android:tint="@color/text_secondary"
+                            android:contentDescription="Limpiar" android:visibility="gone"
+                            android:clickable="true" android:focusable="true" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Category quick-jump tabs -->
+                <HorizontalScrollView
+                    android:id="@+id/category_tabs_scroll"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="8dp"
+                    android:visibility="gone">
+                    <LinearLayout
+                        android:id="@+id/category_tabs_container"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical" />
+                </HorizontalScrollView>
+
+                <TextView android:id="@+id/text_no_menu_results"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="No se encontraron platillos"
+                    android:textColor="@color/text_secondary" android:textSize="13sp"
+                    android:gravity="center" android:padding="24dp" android:visibility="gone" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_menu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="12dp"
+                    android:paddingBottom="90dp"
+                    android:nestedScrollingEnabled="false" />
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
+
+    <!-- Floating cart bar -->
+    <LinearLayout
+        android:id="@+id/layout_floating_cart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_floating_cart"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="16dp"
+        android:gravity="center_vertical"
+        android:elevation="16dp"
+        android:visibility="gone">
+
+        <!-- Item count badge -->
+        <TextView
+            android:id="@+id/text_cart_count_badge"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:background="@drawable/bg_frosted_pill"
+            android:textColor="@color/primary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <!-- Restaurant + items text -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingStart="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ver carrito"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/text_floating_items"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFFCC"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Total -->
+        <TextView
+            android:id="@+id/text_floating_total"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_arrow_right"
+            android:tint="#FFFFFF"
+            android:contentDescription="@null" />
+
+    </LinearLayout>
+
+</FrameLayout>

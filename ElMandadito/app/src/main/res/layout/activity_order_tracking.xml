@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background">
+
+    <!-- Header with brand gradient -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_hero"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="48dp"
+        android:paddingBottom="32dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rastreo de Pedido"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/text_order_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Pedido #00001"
+            android:textColor="#FFCDD2"
+            android:textSize="13sp" />
+
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Animated scooter card with warm gradient -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="5dp"
+                app:cardBackgroundColor="@color/surface"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_tracking_card"
+                    android:padding="24dp"
+                    android:gravity="center">
+
+                    <FrameLayout
+                        android:layout_width="88dp"
+                        android:layout_height="88dp"
+                        android:background="@drawable/bg_frosted_pill">
+
+                        <ImageView
+                            android:id="@+id/img_scooter"
+                            android:layout_width="54dp"
+                            android:layout_height="54dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_motor"
+                            android:tint="@color/primary"
+                            android:contentDescription="@null" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/text_status_main"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="Confirmando pedido..."
+                        android:textColor="@color/brown_dark"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/text_eta"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Tiempo estimado: 30-40 min"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+
+                    <!-- Progress bar -->
+                    <ProgressBar
+                        android:id="@+id/progress_delivery"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="8dp"
+                        android:layout_marginTop="18dp"
+                        android:max="100"
+                        android:progress="10"
+                        android:progressDrawable="@drawable/bg_tracking_progress" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Steps card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="5dp"
+                app:cardBackgroundColor="@color/surface"
+                app:strokeColor="@color/card_stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="18dp">
+                        <View android:layout_width="4dp" android:layout_height="18dp"
+                            android:background="@color/primary" android:layout_marginEnd="10dp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Estado del pedido"
+                            android:textColor="@color/brown_dark"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- Step 1 -->
+                    <LinearLayout
+                        android:id="@+id/step_confirmed"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp">
+
+                        <FrameLayout android:layout_width="38dp" android:layout_height="38dp">
+                            <View android:id="@+id/step1_circle"
+                                android:layout_width="38dp" android:layout_height="38dp"
+                                android:background="@drawable/bg_step_pending" />
+                            <ImageView android:id="@+id/step1_icon"
+                                android:layout_width="20dp" android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_check_circle" android:tint="#FFFFFF"
+                                android:visibility="gone" android:contentDescription="@null" />
+                            <TextView android:id="@+id/step1_num"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:layout_gravity="center" android:text="1"
+                                android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold" />
+                        </FrameLayout>
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:orientation="vertical"
+                            android:layout_marginStart="14dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="Pedido confirmado"
+                                android:textColor="@color/brown_dark" android:textSize="14sp" android:textStyle="bold" />
+                            <TextView android:id="@+id/step1_time"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="Esperando..."
+                                android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Connector -->
+                    <View android:layout_width="2dp" android:layout_height="22dp"
+                        android:layout_marginStart="18dp" android:layout_marginBottom="4dp"
+                        android:background="@color/divider" />
+
+                    <!-- Step 2 -->
+                    <LinearLayout
+                        android:id="@+id/step_preparing"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp">
+
+                        <FrameLayout android:layout_width="38dp" android:layout_height="38dp">
+                            <View android:id="@+id/step2_circle"
+                                android:layout_width="38dp" android:layout_height="38dp"
+                                android:background="@drawable/bg_step_pending" />
+                            <ImageView android:id="@+id/step2_icon"
+                                android:layout_width="20dp" android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_check_circle" android:tint="#FFFFFF"
+                                android:visibility="gone" android:contentDescription="@null" />
+                            <TextView android:id="@+id/step2_num"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:layout_gravity="center" android:text="2"
+                                android:textColor="@color/text_secondary" android:textSize="14sp" android:textStyle="bold" />
+                        </FrameLayout>
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:orientation="vertical"
+                            android:layout_marginStart="14dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="Preparando tu pedido"
+                                android:textColor="@color/brown_dark" android:textSize="14sp" android:textStyle="bold" />
+                            <TextView android:id="@+id/step2_time"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="En espera"
+                                android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Connector -->
+                    <View android:layout_width="2dp" android:layout_height="22dp"
+                        android:layout_marginStart="18dp" android:layout_marginBottom="4dp"
+                        android:background="@color/divider" />
+
+                    <!-- Step 3 -->
+                    <LinearLayout
+                        android:id="@+id/step_onway"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp">
+
+                        <FrameLayout android:layout_width="38dp" android:layout_height="38dp">
+                            <View android:id="@+id/step3_circle"
+                                android:layout_width="38dp" android:layout_height="38dp"
+                                android:background="@drawable/bg_step_pending" />
+                            <ImageView android:id="@+id/step3_icon"
+                                android:layout_width="20dp" android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_check_circle" android:tint="#FFFFFF"
+                                android:visibility="gone" android:contentDescription="@null" />
+                            <TextView android:id="@+id/step3_num"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:layout_gravity="center" android:text="3"
+                                android:textColor="@color/text_secondary" android:textSize="14sp" android:textStyle="bold" />
+                        </FrameLayout>
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:orientation="vertical"
+                            android:layout_marginStart="14dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="En camino"
+                                android:textColor="@color/brown_dark" android:textSize="14sp" android:textStyle="bold" />
+                            <TextView android:id="@+id/step3_time"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="En espera"
+                                android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Connector -->
+                    <View android:layout_width="2dp" android:layout_height="22dp"
+                        android:layout_marginStart="18dp" android:layout_marginBottom="4dp"
+                        android:background="@color/divider" />
+
+                    <!-- Step 4 -->
+                    <LinearLayout
+                        android:id="@+id/step_delivered"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <FrameLayout android:layout_width="38dp" android:layout_height="38dp">
+                            <View android:id="@+id/step4_circle"
+                                android:layout_width="38dp" android:layout_height="38dp"
+                                android:background="@drawable/bg_step_pending" />
+                            <ImageView android:id="@+id/step4_icon"
+                                android:layout_width="20dp" android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_check_circle" android:tint="#FFFFFF"
+                                android:visibility="gone" android:contentDescription="@null" />
+                            <TextView android:id="@+id/step4_num"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:layout_gravity="center" android:text="4"
+                                android:textColor="@color/text_secondary" android:textSize="14sp" android:textStyle="bold" />
+                        </FrameLayout>
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                            android:layout_weight="1" android:orientation="vertical"
+                            android:layout_marginStart="14dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="Entregado"
+                                android:textColor="@color/brown_dark" android:textSize="14sp" android:textStyle="bold" />
+                            <TextView android:id="@+id/step4_time"
+                                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                android:text="En espera"
+                                android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Back to home button -->
+            <Button
+                android:id="@+id/btn_back_home"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/bg_checkout_btn"
+                android:text="Volver al inicio"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

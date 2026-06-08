@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp" android:height="32dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <!-- Crust -->
+    <path android:fillColor="#D2691E" android:pathData="M50,12 L88,80 L12,80 Z"/>
+    <!-- Sauce -->
+    <path android:fillColor="#C62828" android:pathData="M50,22 L82,76 L18,76 Z"/>
+    <!-- Cheese -->
+    <path android:fillColor="#FFC107" android:pathData="M50,30 L77,74 L23,74 Z"/>
+    <!-- Toppings (circles converted to paths) -->
+    <path android:fillColor="#C62828" android:pathData="M45,50 A5,5 0 1 0 55,50 A5,5 0 1 0 45,50 Z"/>
+    <path android:fillColor="#C62828" android:pathData="M34,62 A4,4 0 1 0 42,62 A4,4 0 1 0 34,62 Z"/>
+    <path android:fillColor="#C62828" android:pathData="M58,62 A4,4 0 1 0 66,62 A4,4 0 1 0 58,62 Z"/>
+    <path android:fillColor="#388E3C" android:pathData="M42,67 A3,3 0 1 0 48,67 A3,3 0 1 0 42,67 Z"/>
+    <path android:fillColor="#388E3C" android:pathData="M53,55 A3,3 0 1 0 59,55 A3,3 0 1 0 53,55 Z"/>
+    <!-- Crust edge -->
+    <path android:fillColor="#E8A87C" android:strokeColor="#D2691E" android:strokeWidth="1"
+        android:pathData="M50,12 L88,80 Q88,88 50,88 Q12,88 12,80 Z"/>
+    <path android:fillColor="#D2691E" android:pathData="M50,12 L88,80 Q80,75 50,75 Q20,75 12,80 Z"/>
+</vector>

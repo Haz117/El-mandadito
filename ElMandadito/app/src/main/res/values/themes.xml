@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ElMandadito" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Brand colors -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorSecondary">@color/accent</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/brown_dark</item>
+        <!-- Typography — medium weight for a premium feel -->
+        <item name="android:fontFamily">sans-serif</item>
+        <!-- Status bar -->
+        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <!-- Shape system -->
+        <item name="shapeAppearanceSmallComponent">@style/Shape.ElMandadito.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/Shape.ElMandadito.Medium</item>
+        <item name="shapeAppearanceLargeComponent">@style/Shape.ElMandadito.Large</item>
+        <!-- Bottom nav -->
+        <item name="bottomNavigationStyle">@style/Widget.ElMandadito.BottomNav</item>
+    </style>
+
+    <!-- Shape system -->
+    <style name="Shape.ElMandadito.Small" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">10dp</item>
+    </style>
+    <style name="Shape.ElMandadito.Medium" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">18dp</item>
+    </style>
+    <style name="Shape.ElMandadito.Large" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">28dp</item>
+    </style>
+
+    <!-- Bottom navigation with active indicator -->
+    <style name="Widget.ElMandadito.BottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemActiveIndicatorStyle">@style/Widget.ElMandadito.BottomNav.ActiveIndicator</item>
+    </style>
+    <style name="Widget.ElMandadito.BottomNav.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/primary_light</item>
+        <item name="shapeAppearance">@style/Shape.ElMandadito.Large</item>
+    </style>
+
+    <!-- Toolbar text -->
+    <style name="TextAppearance.Toolbar" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Typography hierarchy -->
+    <style name="TextAppearance.ElMandadito.Display" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">-0.015</item>
+        <item name="android:lineSpacingMultiplier">1.1</item>
+    </style>
+    <style name="TextAppearance.ElMandadito.Headline" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+    <style name="TextAppearance.ElMandadito.Title" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    <style name="TextAppearance.ElMandadito.Body" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">13sp</item>
+        <item name="android:lineSpacingMultiplier">1.35</item>
+    </style>
+    <style name="TextAppearance.ElMandadito.Label" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">11sp</item>
+        <item name="android:letterSpacing">0.04</item>
+    </style>
+
+    <!-- Bottom sheet -->
+    <style name="BottomSheetDialogTheme" parent="Theme.Material3.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/BottomSheetStyle</item>
+    </style>
+    <style name="BottomSheetStyle" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="shapeAppearance">@style/BottomSheetShape</item>
+        <item name="android:backgroundTint">@color/surface</item>
+    </style>
+    <style name="BottomSheetShape" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">28dp</item>
+        <item name="cornerSizeTopRight">28dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <!-- Card style -->
+    <style name="Widget.ElMandadito.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">20dp</item>
+        <item name="cardElevation">3dp</item>
+        <item name="strokeColor">@color/card_stroke</item>
+        <item name="strokeWidth">0.5dp</item>
+    </style>
+
+    <!-- Chip filter style with selection state -->
+    <style name="Widget.ElMandadito.Chip.Filter" parent="Widget.Material3.Chip.Filter">
+        <item name="chipBackgroundColor">@color/chip_bg_state</item>
+        <item name="android:textColor">@color/chip_text_state</item>
+        <item name="chipIconTint">@color/chip_icon_state</item>
+        <item name="chipStrokeColor">@color/chip_stroke_state</item>
+        <item name="chipStrokeWidth">1.5dp</item>
+        <item name="android:minHeight">42dp</item>
+        <item name="checkedIconVisible">false</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+</resources>

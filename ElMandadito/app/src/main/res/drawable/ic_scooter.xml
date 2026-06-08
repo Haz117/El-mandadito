@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <!-- Body -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M70,30 L55,30 L45,50 L20,50 L20,60 L80,60 L80,40 Z"/>
+    <!-- Seat (rect: left=52 top=24 right=75 bottom=32) -->
+    <path android:fillColor="#FFFFFF" android:pathData="M52,24 L75,24 L75,32 L52,32 Z"/>
+    <!-- Handlebar (rect: left=72 top=28 right=82 bottom=34) -->
+    <path android:fillColor="#FFFFFF" android:pathData="M72,28 L82,28 L82,34 L72,34 Z"/>
+    <!-- Rear wheel outer (circle cx=28 cy=68 r=14) -->
+    <path android:fillColor="#FFFFFF" android:pathData="M14,68 A14,14 0 1 0 42,68 A14,14 0 1 0 14,68 Z"/>
+    <!-- Rear wheel inner (circle cx=28 cy=68 r=8) -->
+    <path android:fillColor="#C62828" android:pathData="M20,68 A8,8 0 1 0 36,68 A8,8 0 1 0 20,68 Z"/>
+    <!-- Front wheel outer (circle cx=74 cy=68 r=14) -->
+    <path android:fillColor="#FFFFFF" android:pathData="M60,68 A14,14 0 1 0 88,68 A14,14 0 1 0 60,68 Z"/>
+    <!-- Front wheel inner (circle cx=74 cy=68 r=8) -->
+    <path android:fillColor="#C62828" android:pathData="M66,68 A8,8 0 1 0 82,68 A8,8 0 1 0 66,68 Z"/>
+    <!-- Box on back (rect: left=12 top=38 right=42 bottom=58) -->
+    <path android:fillColor="#FFD54F" android:pathData="M12,38 L42,38 L42,58 L12,58 Z"/>
+    <!-- Box stripe (rect: left=14 top=40 right=40 bottom=42) -->
+    <path android:fillColor="#C62828" android:pathData="M14,40 L40,40 L40,42 L14,42 Z"/>
+</vector>

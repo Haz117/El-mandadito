@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp" android:height="32dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <!-- Bun top -->
+    <path android:fillColor="#F4A460"
+        android:pathData="M20,45 Q20,20 50,20 Q80,20 80,45 Z"/>
+    <!-- Sesame seeds -->
+    <path android:fillColor="#D2691E" android:pathData="M37,30 A3,2 0 1 0 43,30 A3,2 0 1 0 37,30 Z"/>
+    <path android:fillColor="#D2691E" android:pathData="M52,27 A3,2 0 1 0 58,27 A3,2 0 1 0 52,27 Z"/>
+    <path android:fillColor="#D2691E" android:pathData="M62,33 A3,2 0 1 0 68,33 A3,2 0 1 0 62,33 Z"/>
+    <!-- Lettuce -->
+    <path android:fillColor="#4CAF50" android:pathData="M15,48 Q30,42 45,48 Q60,42 85,48 L85,52 Q60,46 45,52 Q30,46 15,52 Z"/>
+    <!-- Patty -->
+    <path android:fillColor="#5C4033" android:pathData="M18,52 L82,52 L82,64 L18,64 Z"/>
+    <!-- Cheese -->
+    <path android:fillColor="#FFC107" android:pathData="M15,64 L85,64 L88,70 L12,70 Z"/>
+    <!-- Bun bottom -->
+    <path android:fillColor="#F4A460" android:pathData="M15,70 L85,70 Q85,82 50,82 Q15,82 15,70 Z"/>
+</vector>

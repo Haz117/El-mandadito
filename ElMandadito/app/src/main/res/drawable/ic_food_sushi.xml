@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp" android:height="32dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <!-- Nori wrapper (rect converted to path) -->
+    <path android:fillColor="#2E4A1E" android:pathData="M10,25 L90,25 L90,75 L10,75 Z"/>
+    <!-- Rice (rect converted to path) -->
+    <path android:fillColor="#FAFAFA" android:pathData="M14,29 L86,29 L86,71 L14,71 Z"/>
+    <!-- Salmon topping -->
+    <path android:fillColor="#FF7043" android:pathData="M20,29 L80,29 L80,48 Q60,42 50,45 Q40,42 20,48 Z"/>
+    <!-- Avocado -->
+    <path android:fillColor="#66BB6A" android:pathData="M30,38 Q40,32 50,38 Q55,35 60,38 Q50,30 40,33 Z"/>
+    <!-- Sesame on rice (circles converted to paths) -->
+    <path android:fillColor="#F5F5DC" android:pathData="M28,60 A2,2 0 1 0 32,60 A2,2 0 1 0 28,60 Z"/>
+    <path android:fillColor="#F5F5DC" android:pathData="M48,62 A2,2 0 1 0 52,62 A2,2 0 1 0 48,62 Z"/>
+    <path android:fillColor="#F5F5DC" android:pathData="M68,60 A2,2 0 1 0 72,60 A2,2 0 1 0 68,60 Z"/>
+</vector>

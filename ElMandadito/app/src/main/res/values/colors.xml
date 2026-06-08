@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand -->
+    <color name="primary">#E53935</color>
+    <color name="primary_dark">#B71C1C</color>
+    <color name="primary_light">#FFCDD2</color>
+    <color name="accent">#FF9500</color>
+    <color name="accent_dark">#E07B00</color>
+
+    <!-- Backgrounds -->
+    <color name="background">#FFFFFF</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#F6F6F6</color>
+
+    <!-- Text hierarchy — neutral, not warm brown -->
+    <color name="brown_dark">#1A1A1A</color>
+    <color name="on_background">#1A1A1A</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="text_secondary">#6B6B6B</color>
+    <color name="text_hint">#A0A0A0</color>
+    <color name="white">#FFFFFF</color>
+
+    <!-- Utility -->
+    <color name="divider">#EBEBEB</color>
+    <color name="chip_bg">#F6F6F6</color>
+    <color name="success">#06C167</color>
+    <color name="star_color">#FF9500</color>
+
+    <!-- Card stroke -->
+    <color name="card_stroke">#EBEBEB</color>
+</resources>
