@@ -187,7 +187,7 @@
                     </LinearLayout>
 
                     <!-- Connector -->
-                    <View android:layout_width="2dp" android:layout_height="22dp"
+                    <View android:layout_width="3dp" android:layout_height="24dp"
                         android:layout_marginStart="18dp" android:layout_marginBottom="4dp"
                         android:background="@color/divider" />
 
@@ -229,7 +229,7 @@
                     </LinearLayout>
 
                     <!-- Connector -->
-                    <View android:layout_width="2dp" android:layout_height="22dp"
+                    <View android:layout_width="3dp" android:layout_height="24dp"
                         android:layout_marginStart="18dp" android:layout_marginBottom="4dp"
                         android:background="@color/divider" />
 
@@ -271,7 +271,7 @@
                     </LinearLayout>
 
                     <!-- Connector -->
-                    <View android:layout_width="2dp" android:layout_height="22dp"
+                    <View android:layout_width="3dp" android:layout_height="24dp"
                         android:layout_marginStart="18dp" android:layout_marginBottom="4dp"
                         android:background="@color/divider" />
 

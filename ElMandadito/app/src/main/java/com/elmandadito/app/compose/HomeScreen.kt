@@ -93,14 +93,16 @@ fun HomeScreen(
             item { SearchRow(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) }
             item { CategoryRow(selectedCat, Modifier.padding(top = 2.dp, bottom = 4.dp)) { selectedCat = it } }
 
-            // ── Gray divider ──────────────────────────────────────────────
             item { SectionDivider() }
 
-            item { SectionHeader("Promociones",
-                Modifier.padding(horizontal = 20.dp).padding(top = 20.dp, bottom = 12.dp)) }
+            item {
+                SectionHeader(
+                    "Promociones",
+                    Modifier.padding(horizontal = 20.dp).padding(top = 20.dp, bottom = 12.dp)
+                )
+            }
             item { PromoBanners() }
 
-            // ── Gray divider ──────────────────────────────────────────────
             item { SectionDivider(Modifier.padding(top = 20.dp)) }
 
             item {
@@ -108,15 +110,26 @@ fun HomeScreen(
                     Modifier.padding(horizontal = 20.dp).padding(top = 20.dp, bottom = 12.dp),
                     Arrangement.SpaceBetween, Alignment.CenterVertically
                 ) {
-                    Text("Restaurantes cercanos", color = NearBlack, fontSize = 20.sp,
-                        fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.3).sp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            Modifier.width(4.dp).height(20.dp)
+                                .background(BrandRed, RoundedCornerShape(2.dp))
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            "Restaurantes cercanos", color = NearBlack, fontSize = 20.sp,
+                            fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.3).sp
+                        )
+                    }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (restaurants.isNotEmpty()) {
                             Text("${restaurants.size}", color = MidGray, fontSize = 12.sp)
                             Spacer(Modifier.width(3.dp))
                         }
-                        Text("Ver todo", color = MidGray, fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium, modifier = Modifier.clickable {})
+                        Text(
+                            "Ver todo", color = MidGray, fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium, modifier = Modifier.clickable {}
+                        )
                     }
                 }
             }
@@ -126,7 +139,7 @@ fun HomeScreen(
                     restaurant = r,
                     onClick    = { onRestaurantClick(r) },
                     modifier   = Modifier
-                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                        .padding(horizontal = 16.dp, vertical = 7.dp)
                         .animateItem(fadeInSpec = tween(300))
                 )
             }
@@ -153,58 +166,60 @@ private fun SectionDivider(modifier: Modifier = Modifier) {
 // ─── TOP HEADER ──────────────────────────────────────────────────────────────
 @Composable
 private fun TopHeader(openCount: Int) {
-    Box(Modifier.fillMaxWidth().background(AppBlack)) {
-        Column(Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
+    Column(Modifier.fillMaxWidth().background(AppBlack).padding(horizontal = 20.dp, vertical = 20.dp)) {
 
-            // Address row
-            Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
-                Column {
-                    Text("Entregar en", color = Color(0xFF757575), fontSize = 11.sp, letterSpacing = 0.3.sp)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.LocationOn, null, tint = AppWhite, modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(3.dp))
-                        Text("Calle Reforma 456", color = AppWhite, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                        Icon(Icons.Filled.KeyboardArrowDown, null, tint = Color(0xFF757575), modifier = Modifier.size(18.dp))
-                    }
-                }
-                Box(
-                    Modifier.size(40.dp).background(Color(0xFF2A2A2A), RoundedCornerShape(12.dp)).clickable {},
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Outlined.Notifications, "Notificaciones", tint = AppWhite, modifier = Modifier.size(22.dp))
+        // Address row
+        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
+            Column {
+                Text("Entregar en", color = Color(0xFF757575), fontSize = 11.sp, letterSpacing = 0.3.sp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.LocationOn, null, tint = AppWhite, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(3.dp))
+                    Text(
+                        "Calle Reforma 456", color = AppWhite, fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.widthIn(max = 220.dp)
+                    )
+                    Icon(Icons.Filled.KeyboardArrowDown, null, tint = Color(0xFF757575), modifier = Modifier.size(18.dp))
                 }
             }
-
-            Spacer(Modifier.height(22.dp))
-
-            // Greeting
-            Text(greeting(), color = Color(0xFF757575), fontSize = 13.sp, letterSpacing = 0.2.sp)
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "¿Qué se te antoja hoy?",
-                color = AppWhite, fontSize = 26.sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = (-0.5).sp, lineHeight = 32.sp
-            )
-
-            // Open count pill
-            if (openCount > 0) {
-                Spacer(Modifier.height(14.dp))
-                Row(
-                    Modifier
-                        .background(Color(0xFF2A2A2A), RoundedCornerShape(20.dp))
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(Modifier.size(6.dp).background(OpenGreen, CircleShape))
-                    Spacer(Modifier.width(7.dp))
-                    Text("$openCount restaurantes abiertos", color = Color(0xFFBDBDBD),
-                        fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                }
+            Box(
+                Modifier.size(40.dp).background(Color(0xFF2A2A2A), RoundedCornerShape(12.dp)).clickable {},
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Outlined.Notifications, "Notificaciones", tint = AppWhite, modifier = Modifier.size(22.dp))
             }
-
-            Spacer(Modifier.height(20.dp))
         }
+
+        Spacer(Modifier.height(22.dp))
+
+        Text(greeting(), color = Color(0xFF757575), fontSize = 13.sp, letterSpacing = 0.2.sp)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "¿Qué se te antoja hoy?",
+            color = AppWhite, fontSize = 26.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = (-0.5).sp, lineHeight = 32.sp
+        )
+
+        if (openCount > 0) {
+            Spacer(Modifier.height(14.dp))
+            Row(
+                Modifier
+                    .background(Color(0xFF2A2A2A), RoundedCornerShape(20.dp))
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(Modifier.size(6.dp).background(OpenGreen, CircleShape))
+                Spacer(Modifier.width(7.dp))
+                Text(
+                    "$openCount restaurantes abiertos", color = Color(0xFFBDBDBD),
+                    fontSize = 12.sp, fontWeight = FontWeight.Medium
+                )
+            }
+        }
+
+        Spacer(Modifier.height(20.dp))
     }
 }
 
@@ -260,6 +275,9 @@ fun CategoryRow(selected: String, modifier: Modifier = Modifier, onSelect: (Stri
             val sc by animateFloatAsState(
                 if (isSel) 1.06f else 1f, spring(Spring.DampingRatioMediumBouncy), label = "cs"
             )
+            val dotW by animateDpAsState(if (isSel) 18.dp else 4.dp, tween(220), label = "dw")
+            val dotC by animateColorAsState(if (isSel) NearBlack else Color.Transparent, tween(180), label = "dc")
+
             Column(
                 Modifier.scale(sc).clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -288,11 +306,9 @@ fun CategoryRow(selected: String, modifier: Modifier = Modifier, onSelect: (Stri
                     fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
                     textAlign = TextAlign.Center
                 )
-                // Selected indicator dot
-                Spacer(Modifier.height(3.dp))
-                Box(
-                    Modifier.size(if (isSel) 4.dp else 0.dp).background(NearBlack, CircleShape)
-                )
+                Spacer(Modifier.height(4.dp))
+                // Animated pill indicator
+                Box(Modifier.height(3.dp).width(dotW).background(dotC, CircleShape))
             }
         }
     }
@@ -312,24 +328,24 @@ fun PromoBanners(modifier: Modifier = Modifier) {
             itemsIndexed(samplePromos) { i, p ->
                 val isActive = i == current
                 val sc by animateFloatAsState(if (isActive) 1f else 0.96f, tween(300), label = "ps")
-                val elevation by animateDpAsState(if (isActive) 6.dp else 1.dp, label = "pe")
+                val elevation by animateDpAsState(if (isActive) 8.dp else 1.dp, label = "pe")
 
                 Box(
-                    Modifier.width(280.dp).height(112.dp).scale(sc)
-                        .shadow(elevation, RoundedCornerShape(18.dp))
-                        .background(NearBlack, RoundedCornerShape(18.dp))
+                    Modifier.width(288.dp).height(118.dp).scale(sc)
+                        .shadow(elevation, RoundedCornerShape(20.dp))
+                        .background(NearBlack, RoundedCornerShape(20.dp))
                         .clickable {}
                 ) {
                     // Red left accent stripe
                     Box(
                         Modifier.width(4.dp).fillMaxHeight()
                             .background(
-                                Brush.verticalGradient(listOf(BrandRed, BrandRed.copy(0.4f))),
-                                RoundedCornerShape(topStart = 18.dp, bottomStart = 18.dp)
+                                Brush.verticalGradient(listOf(BrandRed, BrandRed.copy(0.3f))),
+                                RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)
                             )
                     )
                     Row(
-                        Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 16.dp),
+                        Modifier.fillMaxSize().padding(start = 20.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
                         Arrangement.SpaceBetween, Alignment.CenterVertically
                     ) {
                         Column(Modifier.weight(1f)) {
@@ -337,26 +353,33 @@ fun PromoBanners(modifier: Modifier = Modifier) {
                                 Modifier.background(BrandRed, RoundedCornerShape(6.dp))
                                     .padding(horizontal = 8.dp, vertical = 3.dp)
                             ) {
-                                Text(p.tag, color = AppWhite, fontSize = 9.sp,
-                                    fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                                Text(
+                                    p.tag, color = AppWhite, fontSize = 9.sp,
+                                    fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp
+                                )
                             }
-                            Spacer(Modifier.height(8.dp))
-                            Text(p.title, color = AppWhite, fontSize = 15.sp,
-                                fontWeight = FontWeight.ExtraBold, lineHeight = 20.sp)
-                            Text(p.sub, color = Color(0xFF9E9E9E), fontSize = 11.sp,
-                                modifier = Modifier.padding(top = 3.dp))
+                            Spacer(Modifier.height(9.dp))
+                            Text(
+                                p.title, color = AppWhite, fontSize = 15.sp,
+                                fontWeight = FontWeight.ExtraBold, lineHeight = 21.sp
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(p.sub, color = Color(0xFF9E9E9E), fontSize = 11.sp)
                         }
-                        Spacer(Modifier.width(10.dp))
-                        Text(p.emoji, fontSize = 42.sp)
+                        Spacer(Modifier.width(8.dp))
+                        Text(p.emoji, fontSize = 44.sp)
                     }
                 }
             }
         }
         // Indicator dots
-        Row(Modifier.fillMaxWidth().padding(top = 10.dp), Arrangement.Center, Alignment.CenterVertically) {
+        Row(
+            Modifier.fillMaxWidth().padding(top = 12.dp),
+            Arrangement.Center, Alignment.CenterVertically
+        ) {
             samplePromos.forEachIndexed { i, _ ->
-                val w by animateDpAsState(if (i == current) 22.dp else 5.dp, label = "d$i")
-                val c by animateColorAsState(if (i == current) NearBlack else Border, label = "dc$i")
+                val w by animateDpAsState(if (i == current) 22.dp else 5.dp, tween(220), label = "d$i")
+                val c by animateColorAsState(if (i == current) NearBlack else Border, tween(200), label = "dc$i")
                 Box(Modifier.padding(horizontal = 3.dp).height(5.dp).width(w).background(c, CircleShape))
             }
         }
@@ -380,8 +403,8 @@ fun RestaurantCard(restaurant: Restaurant, onClick: () -> Unit, modifier: Modifi
                 onTap   = { onClick() }
             )
         },
-        shape     = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        shape     = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp, pressedElevation = 0.dp),
         border    = BorderStroke(1.dp, Border),
         colors    = CardDefaults.cardColors(containerColor = AppWhite)
     ) {
@@ -394,6 +417,11 @@ fun RestaurantCard(restaurant: Restaurant, onClick: () -> Unit, modifier: Modifi
                 // Food emoji
                 Text(restaurant.emoji, fontSize = 68.sp, modifier = Modifier.align(Alignment.Center))
 
+                // Closed overlay — dims card when restaurant is not open
+                if (!restaurant.isOpen) {
+                    Box(Modifier.fillMaxSize().background(AppBlack.copy(alpha = 0.52f)))
+                }
+
                 // Promo badge (top-start)
                 if (restaurant.promo != null) {
                     Box(
@@ -401,8 +429,10 @@ fun RestaurantCard(restaurant: Restaurant, onClick: () -> Unit, modifier: Modifi
                             .background(BrandRed, RoundedCornerShape(8.dp))
                             .padding(horizontal = 10.dp, vertical = 5.dp)
                     ) {
-                        Text(restaurant.promo, color = AppWhite, fontSize = 10.sp,
-                            fontWeight = FontWeight.ExtraBold, letterSpacing = 0.3.sp)
+                        Text(
+                            restaurant.promo, color = AppWhite, fontSize = 10.sp,
+                            fontWeight = FontWeight.ExtraBold, letterSpacing = 0.3.sp
+                        )
                     }
                 }
 
@@ -421,11 +451,14 @@ fun RestaurantCard(restaurant: Restaurant, onClick: () -> Unit, modifier: Modifi
                 // Open/closed badge (bottom-start)
                 Row(
                     Modifier.padding(12.dp).align(Alignment.BottomStart)
-                        .background(if (restaurant.isOpen) OpenGreen else DarkGray, RoundedCornerShape(20.dp))
+                        .background(
+                            if (restaurant.isOpen) OpenGreen else DarkGray,
+                            RoundedCornerShape(20.dp)
+                        )
                         .padding(horizontal = 9.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(Modifier.size(5.dp).background(AppWhite.copy(0.85f), CircleShape))
+                    Box(Modifier.size(5.dp).background(AppWhite.copy(0.9f), CircleShape))
                     Spacer(Modifier.width(5.dp))
                     Text(
                         if (restaurant.isOpen) "Abierto" else "Cerrado",
@@ -442,7 +475,7 @@ fun RestaurantCard(restaurant: Restaurant, onClick: () -> Unit, modifier: Modifi
             }
 
             // ── Info ───────────────────────────────────────────────────────
-            Column(Modifier.padding(horizontal = 14.dp, vertical = 14.dp)) {
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
 
                 // Name + chevron
                 Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
@@ -452,15 +485,16 @@ fun RestaurantCard(restaurant: Restaurant, onClick: () -> Unit, modifier: Modifi
                         maxLines = 1, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
-                    Icon(Icons.Filled.ChevronRight, null, tint = Border, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Filled.ChevronRight, null, tint = Color(0xFFCCCCCC), modifier = Modifier.size(18.dp))
                 }
 
                 // Tag chips
-                Row(Modifier.padding(top = 6.dp, bottom = 10.dp)) {
+                Row(Modifier.padding(top = 7.dp, bottom = 10.dp)) {
                     restaurant.tags.take(3).forEach { tag ->
                         Box(
                             Modifier.padding(end = 6.dp)
                                 .background(LightGray, RoundedCornerShape(20.dp))
+                                .border(1.dp, Border, RoundedCornerShape(20.dp))
                                 .padding(horizontal = 9.dp, vertical = 4.dp)
                         ) {
                             Text(tag, color = MidGray, fontSize = 11.sp, fontWeight = FontWeight.Medium)
@@ -504,18 +538,18 @@ private fun MetaDot() {
 @Composable
 fun FavoriteButton(isFav: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
     val sc by animateFloatAsState(
-        if (isFav) 1.3f else 1f,
+        if (isFav) 1.25f else 1f,
         spring(Spring.DampingRatioLowBouncy, Spring.StiffnessHigh), label = "fav"
     )
     Box(
-        modifier.size(34.dp).background(AppWhite.copy(0.92f), CircleShape).clickable { onToggle() },
+        modifier.size(38.dp).background(AppWhite.copy(0.95f), CircleShape).clickable { onToggle() },
         contentAlignment = Alignment.Center
     ) {
         Icon(
             if (isFav) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
             "Favorito",
-            tint = if (isFav) BrandRed else NearBlack.copy(0.6f),
-            modifier = Modifier.size(17.dp).scale(sc)
+            tint = if (isFav) BrandRed else NearBlack.copy(0.65f),
+            modifier = Modifier.size(18.dp).scale(sc)
         )
     }
 }
@@ -524,10 +558,18 @@ fun FavoriteButton(isFav: Boolean, onToggle: () -> Unit, modifier: Modifier = Mo
 @Composable
 fun SectionHeader(title: String, modifier: Modifier = Modifier) {
     Row(modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
-        Text(title, color = NearBlack, fontSize = 20.sp,
-            fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.3).sp)
-        Text("Ver todo", color = MidGray, fontSize = 13.sp,
-            fontWeight = FontWeight.Medium, modifier = Modifier.clickable {})
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.width(4.dp).height(20.dp).background(BrandRed, RoundedCornerShape(2.dp)))
+            Spacer(Modifier.width(10.dp))
+            Text(
+                title, color = NearBlack, fontSize = 20.sp,
+                fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.3).sp
+            )
+        }
+        Text(
+            "Ver todo", color = MidGray, fontSize = 13.sp,
+            fontWeight = FontWeight.Medium, modifier = Modifier.clickable {}
+        )
     }
 }
 
@@ -536,24 +578,29 @@ fun SectionHeader(title: String, modifier: Modifier = Modifier) {
 fun CartBar(count: Int, total: Int, onClick: () -> Unit) {
     Box(
         Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)
-            .shadow(16.dp, RoundedCornerShape(18.dp))
-            .background(NearBlack, RoundedCornerShape(18.dp))
+            .shadow(20.dp, RoundedCornerShape(20.dp))
+            .background(NearBlack, RoundedCornerShape(20.dp))
             .clickable { onClick() }
-            .padding(horizontal = 20.dp, vertical = 17.dp)
+            .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
         Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    Modifier.size(28.dp).background(DarkGray, RoundedCornerShape(8.dp)),
+                    Modifier.size(30.dp).background(BrandRed, RoundedCornerShape(9.dp)),
                     contentAlignment = Alignment.Center
-                ) { Text("$count", color = AppWhite, fontSize = 13.sp, fontWeight = FontWeight.Bold) }
+                ) { Text("$count", color = AppWhite, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold) }
                 Spacer(Modifier.width(12.dp))
                 Text("Ver mi carrito", color = AppWhite, fontSize = 15.sp, fontWeight = FontWeight.Bold)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("\$$total", color = AppWhite, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.width(4.dp))
-                Icon(Icons.Filled.ChevronRight, null, tint = Color(0xFF757575), modifier = Modifier.size(18.dp))
+                Text("\$$total", color = AppWhite, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.width(6.dp))
+                Box(
+                    Modifier.size(22.dp).background(Color(0xFF2A2A2A), RoundedCornerShape(6.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Filled.ChevronRight, null, tint = Color(0xFF9E9E9E), modifier = Modifier.size(16.dp))
+                }
             }
         }
     }
@@ -573,7 +620,7 @@ private fun EmptyState() {
         Spacer(Modifier.height(16.dp))
         Text("Sin resultados", color = NearBlack, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(6.dp))
-        Text("Intenta con otra categoría o búsqueda", color = MidGray, fontSize = 14.sp)
+        Text("Intenta con otra categoría o búsqueda", color = MidGray, fontSize = 14.sp, textAlign = TextAlign.Center)
     }
 }
 
