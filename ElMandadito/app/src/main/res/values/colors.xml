@@ -3,7 +3,7 @@
     <!-- Brand -->
     <color name="primary">#E53935</color>
     <color name="primary_dark">#B71C1C</color>
-    <color name="primary_light">#FFCDD2</color>
+    <color name="primary_light">#F0F0F0</color>
     <color name="accent">#FF9500</color>
     <color name="accent_dark">#E07B00</color>
 

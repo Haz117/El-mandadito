@@ -50,14 +50,14 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:src="@drawable/ic_heart_outline"
-            android:tint="#EDE0D4" />
+            android:tint="@color/divider" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Aún no tienes favoritos"
-            android:textColor="#5C4033"
+            android:textColor="@color/brown_dark"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -66,7 +66,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Toca el corazón en cualquier restaurante para guardarlo aquí"
-            android:textColor="#8D6E63"
+            android:textColor="@color/text_secondary"
             android:textSize="13sp"
             android:gravity="center" />
 
