@@ -2,9 +2,11 @@ package com.elmandadito.app.ui.auth
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.appcompat.app.AppCompatActivity
+import com.elmandadito.app.R
 import com.elmandadito.app.data.UserAuthManager
 import com.elmandadito.app.databinding.ActivityRegisterBinding
 import com.elmandadito.app.ui.MainActivity
@@ -12,6 +14,8 @@ import com.elmandadito.app.ui.MainActivity
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRegisterBinding
+    private var passwordVisible = false
+    private var confirmPasswordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,6 +25,32 @@ class RegisterActivity : AppCompatActivity() {
 
         binding.editConfirmPassword.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) { attemptRegister(); true } else false
+        }
+
+        binding.btnTogglePassword.setOnClickListener {
+            passwordVisible = !passwordVisible
+            val cursorPos = binding.editPassword.selectionEnd
+            binding.editPassword.inputType = if (passwordVisible)
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            else
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            binding.editPassword.setSelection(cursorPos.coerceAtLeast(0))
+            binding.btnTogglePassword.setImageResource(
+                if (passwordVisible) R.drawable.ic_eye_off else R.drawable.ic_eye
+            )
+        }
+
+        binding.btnToggleConfirmPassword.setOnClickListener {
+            confirmPasswordVisible = !confirmPasswordVisible
+            val cursorPos = binding.editConfirmPassword.selectionEnd
+            binding.editConfirmPassword.inputType = if (confirmPasswordVisible)
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            else
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            binding.editConfirmPassword.setSelection(cursorPos.coerceAtLeast(0))
+            binding.btnToggleConfirmPassword.setImageResource(
+                if (confirmPasswordVisible) R.drawable.ic_eye_off else R.drawable.ic_eye
+            )
         }
 
         binding.btnRegister.setOnClickListener { attemptRegister() }
