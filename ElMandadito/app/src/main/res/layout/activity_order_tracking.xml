@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="Pedido #00001"
-            android:textColor="#FFCDD2"
+            android:textColor="#9E9E9E"
             android:textSize="13sp" />
 
     </LinearLayout>
@@ -78,7 +78,7 @@
                             android:layout_height="54dp"
                             android:layout_gravity="center"
                             android:src="@drawable/ic_motor"
-                            android:tint="@color/primary"
+                            android:tint="#1A1A1A"
                             android:contentDescription="@null" />
                     </FrameLayout>
 

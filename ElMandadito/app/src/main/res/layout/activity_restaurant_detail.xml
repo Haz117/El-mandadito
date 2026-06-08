@@ -42,26 +42,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent" />
 
-                    <!-- Large decorative circle top-right -->
-                    <View
-                        android:layout_width="240dp"
-                        android:layout_height="240dp"
-                        android:layout_gravity="top|end"
-                        android:layout_marginTop="-60dp"
-                        android:layout_marginEnd="-60dp"
-                        android:background="@drawable/bg_frosted_pill"
-                        android:alpha="0.06" />
-
-                    <!-- Small decorative circle bottom-left -->
-                    <View
-                        android:layout_width="130dp"
-                        android:layout_height="130dp"
-                        android:layout_gravity="bottom|start"
-                        android:layout_marginStart="-30dp"
-                        android:layout_marginBottom="-30dp"
-                        android:background="@drawable/bg_frosted_pill"
-                        android:alpha="0.08" />
-
                     <!-- Bottom scrim for card overlap -->
                     <View
                         android:layout_width="match_parent"

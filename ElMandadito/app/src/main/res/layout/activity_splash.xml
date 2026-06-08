@@ -4,6 +4,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_splash">
 
+    <!-- Center content -->
     <LinearLayout
         android:id="@+id/layout_content"
         android:layout_width="wrap_content"
@@ -13,22 +14,23 @@
         android:gravity="center"
         android:alpha="0">
 
-        <!-- Icon inside frosted circle -->
+        <!-- Icon container — dark circle on black -->
         <FrameLayout
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:background="@drawable/bg_frosted_pill">
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@drawable/bg_icon_dark_circle">
 
             <ImageView
                 android:id="@+id/img_logo"
-                android:layout_width="72dp"
-                android:layout_height="72dp"
+                android:layout_width="62dp"
+                android:layout_height="62dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_scooter"
-                android:tint="@color/primary"
+                android:tint="#FFFFFF"
                 android:contentDescription="@null" />
         </FrameLayout>
 
+        <!-- Brand name -->
         <TextView
             android:id="@+id/text_brand"
             android:layout_width="wrap_content"
@@ -36,45 +38,38 @@
             android:layout_marginTop="24dp"
             android:text="El Mandadito"
             android:textColor="#FFFFFF"
-            android:textSize="38sp"
+            android:textSize="34sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium"
-            android:letterSpacing="0.02" />
+            android:letterSpacing="-0.02" />
 
+        <!-- Tagline -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Tu comida favorita, a domicilio"
-            android:textColor="#FFCDD2"
-            android:textSize="14sp"
-            android:letterSpacing="0.04" />
+            android:textColor="#757575"
+            android:textSize="13sp"
+            android:letterSpacing="0.02" />
 
     </LinearLayout>
 
+    <!-- Loading indicator — bottom, minimal -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="56dp"
+        android:layout_marginBottom="60dp"
         android:orientation="vertical"
         android:gravity="center">
 
         <ProgressBar
             android:id="@+id/progress_loading"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:indeterminate="true"
-            android:indeterminateTint="#FFCDD2" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Cargando..."
-            android:textColor="#FFCDD2"
-            android:textSize="12sp"
-            android:letterSpacing="0.06" />
+            android:indeterminateTint="#3D3D3D" />
 
     </LinearLayout>
 
