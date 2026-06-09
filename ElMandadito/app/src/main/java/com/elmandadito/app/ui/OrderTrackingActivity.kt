@@ -1,11 +1,13 @@
 package com.elmandadito.app.ui
 
 import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AnimationUtils
 import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
@@ -37,6 +39,25 @@ class OrderTrackingActivity : AppCompatActivity() {
         binding.btnBackHome.setOnClickListener { navigateHome() }
 
         startTracking()
+        startScooterFloat()
+    }
+
+    private fun startScooterFloat() {
+        ObjectAnimator.ofFloat(binding.imgScooter, "translationY", 0f, -14f, 0f).apply {
+            duration = 2000
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.RESTART
+            interpolator = AccelerateDecelerateInterpolator()
+            start()
+        }
+    }
+
+    private fun transitionStatus(status: String, eta: String) {
+        binding.textStatusMain.animate().alpha(0f).setDuration(180).withEndAction {
+            binding.textStatusMain.text = status
+            binding.textEta.text = eta
+            binding.textStatusMain.animate().alpha(1f).setDuration(300).start()
+        }.start()
     }
 
     private fun startTracking() {
@@ -53,30 +74,26 @@ class OrderTrackingActivity : AppCompatActivity() {
         when (currentStep) {
             1 -> {
                 markStepActive(binding.step1Circle, binding.step1Num, binding.step1Icon, binding.step1Time, timeNow)
-                binding.textStatusMain.text = "Pedido confirmado"
-                binding.textEta.text = "Tiempo estimado: 35-45 min"
+                transitionStatus("Pedido confirmado", "Tiempo estimado: 35-45 min")
                 animateProgress(10)
             }
             2 -> {
                 markStepDone(binding.step1Circle, binding.step1Num, binding.step1Icon, binding.step1Time, timeNow)
                 markStepActive(binding.step2Circle, binding.step2Num, binding.step2Icon, binding.step2Time, timeNow)
-                binding.textStatusMain.text = "Preparando tu pedido"
-                binding.textEta.text = "Tiempo estimado: 25-30 min"
+                transitionStatus("Preparando tu pedido", "Tiempo estimado: 25-30 min")
                 animateProgress(35)
             }
             3 -> {
                 markStepDone(binding.step2Circle, binding.step2Num, binding.step2Icon, binding.step2Time, timeNow)
                 markStepActive(binding.step3Circle, binding.step3Num, binding.step3Icon, binding.step3Time, timeNow)
-                binding.textStatusMain.text = "¡Tu mandadito está en camino!"
-                binding.textEta.text = "Tiempo estimado: 10-15 min"
+                transitionStatus("¡Tu mandadito está en camino!", "Tiempo estimado: 10-15 min")
                 animateProgress(70)
                 animateScooter()
             }
             4 -> {
                 markStepDone(binding.step3Circle, binding.step3Num, binding.step3Icon, binding.step3Time, timeNow)
                 markStepDone(binding.step4Circle, binding.step4Num, binding.step4Icon, binding.step4Time, timeNow)
-                binding.textStatusMain.text = "¡Pedido entregado!"
-                binding.textEta.text = "Buen provecho"
+                transitionStatus("¡Pedido entregado!", "Buen provecho")
                 animateProgress(100)
                 binding.btnBackHome.visibility = View.VISIBLE
                 binding.btnBackHome.startAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_in))

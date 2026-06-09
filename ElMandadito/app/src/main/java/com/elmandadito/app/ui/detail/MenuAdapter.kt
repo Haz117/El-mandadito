@@ -17,6 +17,7 @@ class MenuAdapter(
 
     private val rows = mutableListOf<Any>()
     private var allSections = listOf<MenuCategory>()
+    private val animatedPositions = mutableSetOf<Int>()
 
     fun submitSections(categories: List<MenuCategory>) {
         allSections = categories
@@ -41,8 +42,21 @@ class MenuAdapter(
 
     private fun rebuildRows(categories: List<MenuCategory>) {
         rows.clear()
+        animatedPositions.clear()
         categories.forEach { cat -> rows.add(cat); rows.addAll(cat.items) }
         notifyDataSetChanged()
+    }
+
+    private fun animateItemEntrance(view: android.view.View, position: Int) {
+        if (!animatedPositions.add(position)) return
+        view.alpha = 0f
+        view.translationY = 28f
+        view.animate()
+            .alpha(1f).translationY(0f)
+            .setStartDelay((position * 35L).coerceAtMost(240L))
+            .setDuration(300)
+            .setInterpolator(android.view.animation.DecelerateInterpolator(2f))
+            .start()
     }
 
     override fun getItemViewType(position: Int) = if (rows[position] is MenuCategory) 0 else 1
@@ -57,7 +71,10 @@ class MenuAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
             is CategoryVH -> holder.bind(rows[position] as MenuCategory)
-            is ItemVH     -> holder.bind(rows[position] as MenuItem)
+            is ItemVH     -> {
+                holder.bind(rows[position] as MenuItem)
+                animateItemEntrance(holder.itemView, position)
+            }
         }
     }
 

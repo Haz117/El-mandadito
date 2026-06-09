@@ -8,6 +8,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.view.animation.AnimationUtils
+import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -75,6 +76,7 @@ class RestaurantDetailActivity : AppCompatActivity() {
         binding.recyclerMenu.adapter = menuAdapter
         menuAdapter.submitSections(restaurant.menu)
 
+        animateHeroEntrance()
         setupCategoryTabs(restaurant.menu.map { it.name })
 
         binding.editMenuSearch.addTextChangedListener(object : TextWatcher {
@@ -109,6 +111,23 @@ class RestaurantDetailActivity : AppCompatActivity() {
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             startActivity(intent)
             finish()
+        }
+    }
+
+    private fun animateHeroEntrance() {
+        val views = listOf<View>(
+            binding.textRestaurantName, binding.layoutDetailStatus,
+            binding.textRating, binding.textTime, binding.textDeliveryFee
+        )
+        views.forEachIndexed { i, view ->
+            view.alpha = 0f
+            view.translationY = 22f
+            view.animate()
+                .alpha(1f).translationY(0f)
+                .setStartDelay(180L + i * 55L)
+                .setDuration(350)
+                .setInterpolator(DecelerateInterpolator(2f))
+                .start()
         }
     }
 

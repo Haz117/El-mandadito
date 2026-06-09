@@ -35,6 +35,7 @@ class CartFragment : Fragment() {
     private lateinit var adapter: CartAdapter
 
     private var selectedPayment = "cash"
+    private var contentShown = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -60,8 +61,20 @@ class CartFragment : Fragment() {
                 binding.btnClearCart.visibility = View.GONE
             } else {
                 binding.layoutEmpty.visibility = View.GONE
-                binding.layoutContent.visibility = View.VISIBLE
                 binding.btnClearCart.visibility = View.VISIBLE
+                if (!contentShown) {
+                    contentShown = true
+                    binding.layoutContent.alpha = 0f
+                    binding.layoutContent.translationY = 48f
+                    binding.layoutContent.visibility = View.VISIBLE
+                    binding.layoutContent.animate()
+                        .alpha(1f).translationY(0f)
+                        .setDuration(380)
+                        .setInterpolator(android.view.animation.DecelerateInterpolator(2f))
+                        .start()
+                } else {
+                    binding.layoutContent.visibility = View.VISIBLE
+                }
                 binding.layoutSwipeHint.visibility = if (items.size >= 2) View.VISIBLE else View.GONE
                 adapter.submitList(items.toList())
                 binding.textRestaurantName.text = items.firstOrNull()?.restaurantName ?: ""
@@ -120,7 +133,7 @@ class CartFragment : Fragment() {
     }
 
     private fun setupSwipeToDelete() {
-        val swipeBackground = ColorDrawable(Color.parseColor("#D62828"))
+        val swipeBackground = ColorDrawable(Color.parseColor("#1A1A1A"))
         val deleteIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_close)
         val iconMargin = resources.getDimensionPixelSize(R.dimen.icon_margin_swipe)
 
@@ -135,8 +148,8 @@ class CartFragment : Fragment() {
 
                 Snackbar.make(binding.root, "${removedItem.menuItem.name} eliminado", Snackbar.LENGTH_LONG)
                     .setAction("Deshacer") { CartRepository.addBack(removedItem) }
-                    .setActionTextColor(Color.parseColor("#F4D35E"))
-                    .setBackgroundTint(Color.parseColor("#5C4033"))
+                    .setActionTextColor(Color.WHITE)
+                    .setBackgroundTint(Color.parseColor("#1A1A1A"))
                     .show()
             }
 
@@ -234,6 +247,11 @@ class CartFragment : Fragment() {
         } else {
             binding.rowDiscount.visibility = View.GONE
         }
+
+        binding.btnCheckout.animate()
+            .scaleX(1.04f).scaleY(1.04f).setDuration(110).withEndAction {
+                binding.btnCheckout.animate().scaleX(1f).scaleY(1f).setDuration(140).start()
+            }.start()
     }
 
     private fun updateDeliveryProgress() {
