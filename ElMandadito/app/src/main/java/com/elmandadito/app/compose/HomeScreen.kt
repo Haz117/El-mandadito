@@ -86,26 +86,36 @@ fun HomeScreen(
     }
     val openCount = remember(selectedCat) { restaurants.count { it.isOpen } }
 
-    Box(Modifier.fillMaxSize().background(AppWhite)) {
+    // ── Screen fade-in entrance ────────────────────────────────────────────
+    var loaded by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { delay(80); loaded = true }
+    val screenAlpha by animateFloatAsState(if (loaded) 1f else 0f, tween(500), label = "sa")
+
+    Box(Modifier.fillMaxSize().background(AppWhite).alpha(screenAlpha)) {
         LazyColumn(contentPadding = PaddingValues(bottom = if (cartCount > 0) 96.dp else 24.dp)) {
 
             item { TopHeader(openCount) }
             item { SearchRow(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) }
             item { CategoryRow(selectedCat, Modifier.padding(top = 2.dp, bottom = 4.dp)) { selectedCat = it } }
 
-            item { SectionDivider() }
+            item(key = "divider1") { SectionDivider() }
 
-            item {
+            item(key = "promoHeader") {
                 SectionHeader(
                     "Promociones",
-                    Modifier.padding(horizontal = 20.dp).padding(top = 20.dp, bottom = 12.dp)
+                    Modifier
+                        .animateItem(fadeInSpec = tween(350))
+                        .padding(horizontal = 20.dp)
+                        .padding(top = 20.dp, bottom = 12.dp)
                 )
             }
-            item { PromoBanners() }
+            item(key = "promoBanners") {
+                PromoBanners(Modifier.animateItem(fadeInSpec = tween(400)))
+            }
 
-            item { SectionDivider(Modifier.padding(top = 20.dp)) }
+            item(key = "divider2") { SectionDivider(Modifier.padding(top = 20.dp)) }
 
-            item {
+            item(key = "nearbyHeader") {
                 Row(
                     Modifier.padding(horizontal = 20.dp).padding(top = 20.dp, bottom = 12.dp),
                     Arrangement.SpaceBetween, Alignment.CenterVertically
@@ -166,6 +176,27 @@ private fun SectionDivider(modifier: Modifier = Modifier) {
 // ─── TOP HEADER ──────────────────────────────────────────────────────────────
 @Composable
 private fun TopHeader(openCount: Int) {
+    // Bell shake animation
+    val bellAnim = rememberInfiniteTransition(label = "bell")
+    val bellRot by bellAnim.animateFloat(
+        initialValue = 0f, targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            keyframes {
+                durationMillis = 4000
+                0f at 0; -8f at 200; 8f at 400; -5f at 600; 5f at 800; 0f at 1000; 0f at 4000
+            },
+            RepeatMode.Restart
+        ), label = "br"
+    )
+
+    // Green dot pulse
+    val pulse = rememberInfiniteTransition(label = "dot")
+    val dotSc by pulse.animateFloat(
+        initialValue = 0.85f, targetValue = 1.15f,
+        animationSpec = infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "ds"
+    )
+
     Column(Modifier.fillMaxWidth().background(AppBlack).padding(horizontal = 20.dp, vertical = 20.dp)) {
 
         // Address row
@@ -187,7 +218,10 @@ private fun TopHeader(openCount: Int) {
                 Modifier.size(40.dp).background(Color(0xFF2A2A2A), RoundedCornerShape(12.dp)).clickable {},
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Outlined.Notifications, "Notificaciones", tint = AppWhite, modifier = Modifier.size(22.dp))
+                Icon(
+                    Icons.Outlined.Notifications, "Notificaciones", tint = AppWhite,
+                    modifier = Modifier.size(22.dp).graphicsLayer { rotationZ = bellRot }
+                )
             }
         }
 
@@ -210,7 +244,7 @@ private fun TopHeader(openCount: Int) {
                     .padding(horizontal = 12.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(Modifier.size(6.dp).background(OpenGreen, CircleShape))
+                Box(Modifier.size(6.dp).scale(dotSc).background(OpenGreen, CircleShape))
                 Spacer(Modifier.width(7.dp))
                 Text(
                     "$openCount restaurantes abiertos", color = Color(0xFFBDBDBD),
@@ -278,6 +312,14 @@ fun CategoryRow(selected: String, modifier: Modifier = Modifier, onSelect: (Stri
             val dotW by animateDpAsState(if (isSel) 18.dp else 4.dp, tween(220), label = "dw")
             val dotC by animateColorAsState(if (isSel) NearBlack else Color.Transparent, tween(180), label = "dc")
 
+            // Shimmer overlay for selected category
+            val shimmer = rememberInfiniteTransition(label = "shimmer")
+            val shimAlpha by shimmer.animateFloat(
+                initialValue = 0f, targetValue = 0.12f,
+                animationSpec = infiniteRepeatable(tween(1200), RepeatMode.Reverse),
+                label = "sha"
+            )
+
             Column(
                 Modifier.scale(sc).clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -297,6 +339,8 @@ fun CategoryRow(selected: String, modifier: Modifier = Modifier, onSelect: (Stri
                         tint = if (isSel) AppWhite else NearBlack,
                         modifier = Modifier.size(26.dp)
                     )
+                    // Shimmer overlay when selected
+                    if (isSel) Box(Modifier.fillMaxSize().background(AppWhite.copy(shimAlpha), CircleShape))
                 }
                 Spacer(Modifier.height(6.dp))
                 Text(
@@ -329,6 +373,14 @@ fun PromoBanners(modifier: Modifier = Modifier) {
                 val isActive = i == current
                 val sc by animateFloatAsState(if (isActive) 1f else 0.96f, tween(300), label = "ps")
                 val elevation by animateDpAsState(if (isActive) 8.dp else 1.dp, label = "pe")
+
+                // Emoji sway when card is active
+                val swayAnim = rememberInfiniteTransition(label = "sway")
+                val rotation by swayAnim.animateFloat(
+                    initialValue = -10f, targetValue = 10f,
+                    animationSpec = infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                    label = "sw"
+                )
 
                 Box(
                     Modifier.width(288.dp).height(118.dp).scale(sc)
@@ -368,7 +420,10 @@ fun PromoBanners(modifier: Modifier = Modifier) {
                             Text(p.sub, color = Color(0xFF9E9E9E), fontSize = 11.sp)
                         }
                         Spacer(Modifier.width(8.dp))
-                        Text(p.emoji, fontSize = 44.sp)
+                        Text(
+                            p.emoji, fontSize = 44.sp,
+                            modifier = Modifier.graphicsLayer { rotationZ = if (isActive) rotation else 0f }
+                        )
                     }
                 }
             }
@@ -397,6 +452,14 @@ fun RestaurantCard(restaurant: Restaurant, onClick: () -> Unit, modifier: Modifi
         if (pressed) 0.98f else 1f, spring(Spring.DampingRatioMediumBouncy), label = "rc"
     )
 
+    // Emoji float animation
+    val floatAnim = rememberInfiniteTransition(label = "float")
+    val emojiY by floatAnim.animateFloat(
+        initialValue = -5f, targetValue = 5f,
+        animationSpec = infiniteRepeatable(tween(2200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "ey"
+    )
+
     Card(
         modifier  = modifier.fillMaxWidth().scale(sc).pointerInput(Unit) {
             detectTapGestures(
@@ -415,8 +478,11 @@ fun RestaurantCard(restaurant: Restaurant, onClick: () -> Unit, modifier: Modifi
                 Modifier.fillMaxWidth().height(168.dp)
                     .background(Brush.verticalGradient(listOf(Color(0xFF222222), ImgBg, Color(0xFF0A0A0A))))
             ) {
-                // Food emoji
-                Text(restaurant.emoji, fontSize = 68.sp, modifier = Modifier.align(Alignment.Center))
+                // Food emoji — gentle float
+                Text(
+                    restaurant.emoji, fontSize = 68.sp,
+                    modifier = Modifier.align(Alignment.Center).offset(y = emojiY.dp)
+                )
 
                 // Closed overlay — dims card when restaurant is not open
                 if (!restaurant.isOpen) {
@@ -577,6 +643,19 @@ fun SectionHeader(title: String, modifier: Modifier = Modifier) {
 // ─── CART BAR ────────────────────────────────────────────────────────────────
 @Composable
 fun CartBar(count: Int, total: Int, onClick: () -> Unit) {
+    // Badge bounce when count increases
+    var prevCount by remember { mutableIntStateOf(count) }
+    var badgeBounce by remember { mutableStateOf(false) }
+    val badgeSc by animateFloatAsState(
+        if (badgeBounce) 1.4f else 1f,
+        spring(Spring.DampingRatioLowBouncy, Spring.StiffnessMedium),
+        label = "bc"
+    )
+    LaunchedEffect(count) {
+        if (count > prevCount) { badgeBounce = true; delay(200); badgeBounce = false }
+        prevCount = count
+    }
+
     Box(
         Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)
             .shadow(20.dp, RoundedCornerShape(20.dp))
@@ -587,7 +666,7 @@ fun CartBar(count: Int, total: Int, onClick: () -> Unit) {
         Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    Modifier.size(30.dp).background(AppWhite, RoundedCornerShape(9.dp)),
+                    Modifier.size(30.dp).scale(badgeSc).background(AppWhite, RoundedCornerShape(9.dp)),
                     contentAlignment = Alignment.Center
                 ) { Text("$count", color = NearBlack, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold) }
                 Spacer(Modifier.width(12.dp))
