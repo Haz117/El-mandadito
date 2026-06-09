@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import androidx.fragment.app.Fragment
 import com.elmandadito.app.data.CartRepository
 import com.elmandadito.app.data.FavoritesManager
@@ -40,6 +41,13 @@ class FavoritesFragment : Fragment() {
         binding.recyclerFavorites.adapter = adapter
         binding.recyclerFavorites.layoutManager =
             androidx.recyclerview.widget.GridLayoutManager(requireContext(), 1)
+
+        binding.textFavoritesCount.alpha = 0f
+        binding.textFavoritesCount.translationY = 28f
+        binding.textFavoritesCount.animate()
+            .alpha(1f).translationY(0f)
+            .setStartDelay(80).setDuration(360)
+            .setInterpolator(DecelerateInterpolator(2f)).start()
 
         CartRepository.items.observe(viewLifecycleOwner) { items ->
             val counts = items.groupBy { it.restaurantName }

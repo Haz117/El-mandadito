@@ -27,7 +27,11 @@ import androidx.compose.ui.text.font.*
 import androidx.compose.ui.text.style.*
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import android.widget.Toast
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.platform.LocalContext
 import com.elmandadito.app.R
+import com.elmandadito.app.data.AddressManager
 import com.elmandadito.app.data.CartRepository
 import com.elmandadito.app.data.FavoritesManager
 import com.elmandadito.app.data.Restaurant
@@ -78,20 +82,34 @@ fun HomeScreen(
     onRestaurantClick: (Restaurant) -> Unit = {},
     onCartClick: () -> Unit = {}
 ) {
+    val ctx = LocalContext.current
     val cartItems  by CartRepository.items.observeAsState(mutableListOf())
     val cartCount  = cartItems.sumOf { it.quantity }
     var selectedCat by remember { mutableStateOf("all") }
     var query by remember { mutableStateOf("") }
-    val restaurants = remember(selectedCat, query) {
-        val base = if (selectedCat == "all") SampleData.restaurants
+    var sortBy by remember { mutableStateOf("default") }
+    var openOnly by remember { mutableStateOf(false) }
+    var currentAddress by remember { mutableStateOf(AddressManager.getSelectedLabel()) }
+    var showAddressDialog by remember { mutableStateOf(false) }
+    var showFilterDialog by remember { mutableStateOf(false) }
+    val filtersActive = sortBy != "default" || openOnly
+
+    val restaurants = remember(selectedCat, query, sortBy, openOnly) {
+        var base = if (selectedCat == "all") SampleData.restaurants
                    else SampleData.restaurants.filter { it.category == selectedCat }
-        if (query.isBlank()) base
-        else base.filter { r ->
+        if (query.isNotBlank()) base = base.filter { r ->
             r.name.contains(query, ignoreCase = true) ||
             r.tags.any { t -> t.contains(query, ignoreCase = true) }
         }
+        if (openOnly) base = base.filter { it.isOpen }
+        when (sortBy) {
+            "rating" -> base.sortedByDescending { it.rating }
+            "time"   -> base.sortedBy { it.deliveryTime.filter { c -> c.isDigit() }.toIntOrNull() ?: 99 }
+            "fee"    -> base.sortedBy { it.deliveryFee }
+            else     -> base
+        }
     }
-    val openCount = remember(selectedCat, query) { restaurants.count { it.isOpen } }
+    val openCount = restaurants.count { it.isOpen }
 
     // ── Loading / skeleton ────────────────────────────────────────────────
     var loaded by remember { mutableStateOf(false) }
@@ -103,8 +121,8 @@ fun HomeScreen(
     Box(Modifier.fillMaxSize().alpha(contentAlpha)) {
         LazyColumn(contentPadding = PaddingValues(bottom = if (cartCount > 0) 96.dp else 24.dp)) {
 
-            item { TopHeader(openCount) }
-            item { SearchRow(query, { query = it }, Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) }
+            item { TopHeader(openCount, currentAddress, { showAddressDialog = true }, { Toast.makeText(ctx, "Sin notificaciones nuevas", Toast.LENGTH_SHORT).show() }) }
+            item { SearchRow(query, { query = it }, { showFilterDialog = true }, filtersActive, Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) }
             item { CategoryRow(selectedCat, Modifier.padding(top = 2.dp, bottom = 4.dp)) { selectedCat = it } }
 
             item(key = "divider1") { SectionDivider() }
@@ -115,7 +133,8 @@ fun HomeScreen(
                     Modifier
                         .animateItem(fadeInSpec = tween(350))
                         .padding(horizontal = 20.dp)
-                        .padding(top = 20.dp, bottom = 12.dp)
+                        .padding(top = 20.dp, bottom = 12.dp),
+                    onVerTodo = { Toast.makeText(ctx, "Próximamente: todas las promociones", Toast.LENGTH_SHORT).show() }
                 )
             }
             item(key = "promoBanners") {
@@ -147,7 +166,9 @@ fun HomeScreen(
                         }
                         Text(
                             "Ver todo", color = MidGray, fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium, modifier = Modifier.clickable {}
+                            fontWeight = FontWeight.Medium, modifier = Modifier.clickable {
+                                selectedCat = "all"; sortBy = "default"; openOnly = false; query = ""
+                            }
                         )
                     }
                 }
@@ -184,6 +205,27 @@ fun HomeScreen(
                 repeat(4) { SkeletonRestaurantCard() }
             }
         }
+    }
+
+    if (showAddressDialog) {
+        AddressDialog(
+            currentSelected = AddressManager.getSelected(),
+            onDismiss = { showAddressDialog = false },
+            onSelect = { idx ->
+                AddressManager.setSelected(idx)
+                currentAddress = AddressManager.getSelectedLabel()
+                showAddressDialog = false
+            }
+        )
+    }
+    if (showFilterDialog) {
+        FilterDialog(
+            sortBy = sortBy,
+            openOnly = openOnly,
+            onSortChange = { sortBy = it },
+            onOpenOnlyChange = { openOnly = it },
+            onDismiss = { showFilterDialog = false }
+        )
     }
 }
 }
@@ -232,7 +274,7 @@ private fun SectionDivider(modifier: Modifier = Modifier) {
 
 // ─── TOP HEADER ──────────────────────────────────────────────────────────────
 @Composable
-private fun TopHeader(openCount: Int) {
+private fun TopHeader(openCount: Int, address: String, onAddressClick: () -> Unit, onBellClick: () -> Unit) {
     // Bell shake animation
     val bellAnim = rememberInfiniteTransition(label = "bell")
     val bellRot by bellAnim.animateFloat(
@@ -258,13 +300,13 @@ private fun TopHeader(openCount: Int) {
 
         // Address row
         Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
-            Column {
+            Column(Modifier.clickable { onAddressClick() }) {
                 Text("Entregar en", color = Color(0xFF757575), fontSize = 11.sp, letterSpacing = 0.3.sp)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.LocationOn, null, tint = AppWhite, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(3.dp))
                     Text(
-                        "Calle Reforma 456", color = AppWhite, fontSize = 15.sp,
+                        address, color = AppWhite, fontSize = 15.sp,
                         fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.widthIn(max = 220.dp)
                     )
@@ -272,7 +314,7 @@ private fun TopHeader(openCount: Int) {
                 }
             }
             Box(
-                Modifier.size(40.dp).background(Color(0xFF2A2A2A), RoundedCornerShape(12.dp)).clickable {},
+                Modifier.size(40.dp).background(Color(0xFF2A2A2A), RoundedCornerShape(12.dp)).clickable { onBellClick() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -316,7 +358,7 @@ private fun TopHeader(openCount: Int) {
 
 // ─── SEARCH ROW ──────────────────────────────────────────────────────────────
 @Composable
-fun SearchRow(query: String = "", onQueryChange: (String) -> Unit = {}, modifier: Modifier = Modifier) {
+fun SearchRow(query: String = "", onQueryChange: (String) -> Unit = {}, onFilterClick: () -> Unit = {}, filtersActive: Boolean = false, modifier: Modifier = Modifier) {
     Row(modifier, Arrangement.spacedBy(10.dp), Alignment.CenterVertically) {
         Row(
             Modifier.weight(1f).height(50.dp)
@@ -343,10 +385,16 @@ fun SearchRow(query: String = "", onQueryChange: (String) -> Unit = {}, modifier
             }
         }
         Box(
-            Modifier.size(50.dp).background(NearBlack, RoundedCornerShape(25.dp)).clickable {},
+            Modifier.size(50.dp).background(NearBlack, RoundedCornerShape(25.dp)).clickable { onFilterClick() },
             contentAlignment = Alignment.Center
         ) {
             Icon(Icons.Filled.Tune, "Filtros", tint = AppWhite, modifier = Modifier.size(22.dp))
+            if (filtersActive) {
+                Box(
+                    Modifier.size(10.dp).background(Color(0xFF06C167), CircleShape)
+                        .align(Alignment.TopEnd)
+                )
+            }
         }
     }
 }
@@ -678,7 +726,7 @@ fun FavoriteButton(isFav: Boolean, onToggle: () -> Unit, modifier: Modifier = Mo
 
 // ─── SECTION HEADER ──────────────────────────────────────────────────────────
 @Composable
-fun SectionHeader(title: String, modifier: Modifier = Modifier) {
+fun SectionHeader(title: String, modifier: Modifier = Modifier, onVerTodo: () -> Unit = {}) {
     Row(modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.width(4.dp).height(20.dp).background(BrandBlack, RoundedCornerShape(2.dp)))
@@ -690,7 +738,7 @@ fun SectionHeader(title: String, modifier: Modifier = Modifier) {
         }
         Text(
             "Ver todo", color = MidGray, fontSize = 13.sp,
-            fontWeight = FontWeight.Medium, modifier = Modifier.clickable {}
+            fontWeight = FontWeight.Medium, modifier = Modifier.clickable { onVerTodo() }
         )
     }
 }
@@ -780,6 +828,88 @@ private fun EmptyState() {
         Spacer(Modifier.height(6.dp))
         Text("Intenta con otra categoría o búsqueda", color = MidGray, fontSize = 14.sp, textAlign = TextAlign.Center)
     }
+}
+
+// ─── ADDRESS DIALOG ──────────────────────────────────────────────────────────
+@Composable
+private fun AddressDialog(currentSelected: Int, onDismiss: () -> Unit, onSelect: (Int) -> Unit) {
+    val options = listOf(
+        "Casa" to AddressManager.fixedAddresses[0].second,
+        "Trabajo" to AddressManager.fixedAddresses[1].second,
+        "Personalizada" to AddressManager.getCustomAddress()
+    )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Selecciona dirección", fontWeight = FontWeight.Bold, color = NearBlack) },
+        text = {
+            Column {
+                options.forEachIndexed { idx, (label, sub) ->
+                    Row(
+                        Modifier.fillMaxWidth()
+                            .selectable(selected = idx == currentSelected, onClick = { onSelect(idx) })
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = idx == currentSelected, onClick = { onSelect(idx) })
+                        Spacer(Modifier.width(10.dp))
+                        Column {
+                            Text(label, fontWeight = FontWeight.SemiBold, color = NearBlack, fontSize = 15.sp)
+                            Text(sub, color = MidGray, fontSize = 12.sp)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar", color = NearBlack) } }
+    )
+}
+
+// ─── FILTER DIALOG ───────────────────────────────────────────────────────────
+@Composable
+private fun FilterDialog(
+    sortBy: String, openOnly: Boolean,
+    onSortChange: (String) -> Unit, onOpenOnlyChange: (Boolean) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sorts = listOf(
+        "default" to "Por defecto",
+        "rating"  to "Calificación",
+        "time"    to "Tiempo de entrega",
+        "fee"     to "Costo de envío"
+    )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Filtros y orden", fontWeight = FontWeight.Bold, color = NearBlack) },
+        text = {
+            Column {
+                Text("Ordenar por", color = MidGray, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 6.dp))
+                sorts.forEach { (id, label) ->
+                    Row(
+                        Modifier.fillMaxWidth()
+                            .selectable(selected = sortBy == id, onClick = { onSortChange(id) })
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = sortBy == id, onClick = { onSortChange(id) })
+                        Spacer(Modifier.width(10.dp))
+                        Text(label, color = NearBlack, fontSize = 14.sp)
+                    }
+                }
+                HorizontalDivider(Modifier.padding(vertical = 12.dp), color = Border)
+                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
+                    Text("Solo restaurantes abiertos", color = NearBlack, fontSize = 14.sp)
+                    Switch(checked = openOnly, onCheckedChange = onOpenOnlyChange)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Listo", fontWeight = FontWeight.Bold, color = NearBlack)
+            }
+        }
+    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)

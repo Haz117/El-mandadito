@@ -29,9 +29,7 @@ class SplashActivity : AppCompatActivity() {
         animateLogo()
 
         handler.postDelayed({
-            // TODO: remove DEV_MODE and restore auth check when login flow is ready
-            val DEV_MODE = true
-            val destination = if (DEV_MODE || UserAuthManager.isLoggedIn()) {
+            val destination = if (UserAuthManager.isLoggedIn()) {
                 Intent(this, MainActivity::class.java)
             } else {
                 Intent(this, LoginActivity::class.java)

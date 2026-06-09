@@ -288,8 +288,17 @@ class CartFragment : Fragment() {
             binding.textDeliveryProgressLabel.setTextColor(resources.getColor(R.color.success, null))
         } else {
             binding.textDeliveryProgressLabel.text = "Agrega \$$remaining más para envío gratis"
-            binding.textDeliveryProgressPct.text = "${progress / 2}%"
+            binding.textDeliveryProgressPct.text = "${progress * 100 / 200}%"
             binding.textDeliveryProgressLabel.setTextColor(resources.getColor(R.color.brown_dark, null))
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val b = _binding ?: return
+        if (CartRepository.items.value?.isNotEmpty() == true) {
+            b.btnCheckout.isEnabled = true
+            b.btnCheckout.text = "Realizar pedido"
         }
     }
 

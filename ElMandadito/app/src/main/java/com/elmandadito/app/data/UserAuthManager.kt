@@ -17,6 +17,10 @@ object UserAuthManager {
         if (name.isBlank()) return RegisterResult.Error("El nombre es obligatorio")
         if (!email.contains("@") || !email.contains(".")) return RegisterResult.Error("Correo inválido")
         if (password.length < 6) return RegisterResult.Error("La contraseña debe tener al menos 6 caracteres")
+        if (UserPrefsManager.hasAccount() &&
+            email.trim().equals(UserPrefsManager.getEmail(), ignoreCase = true)) {
+            return RegisterResult.Error("Ya existe una cuenta con este correo")
+        }
         UserPrefsManager.setName(name.trim())
         UserPrefsManager.setEmail(email.trim().lowercase())
         UserPrefsManager.setPasswordHash(hashPassword(password))

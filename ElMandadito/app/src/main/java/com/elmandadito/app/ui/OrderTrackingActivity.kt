@@ -103,6 +103,7 @@ class OrderTrackingActivity : AppCompatActivity() {
     }
 
     private fun showRatingSheet() {
+        if (isFinishing || isDestroyed) return
         val dialog = BottomSheetDialog(this, R.style.BottomSheetDialogTheme)
         val sheetBinding = BottomSheetRatingBinding.inflate(layoutInflater)
         dialog.setContentView(sheetBinding.root)
