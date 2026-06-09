@@ -42,7 +42,7 @@ private val MidGray   = Color(0xFF6B6B6B)
 private val LightGray = Color(0xFFF6F6F6)
 private val Border    = Color(0xFFEBEBEB)
 private val AppWhite  = Color(0xFFFFFFFF)
-private val BrandRed  = Color(0xFFE53935)
+private val BrandBlack = Color(0xFF000000)
 private val OpenGreen = Color(0xFF06C167)
 private val ImgBg     = Color(0xFF141414)
 
@@ -113,7 +113,7 @@ fun HomeScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             Modifier.width(4.dp).height(20.dp)
-                                .background(BrandRed, RoundedCornerShape(2.dp))
+                                .background(BrandBlack, RoundedCornerShape(2.dp))
                         )
                         Spacer(Modifier.width(10.dp))
                         Text(
@@ -336,11 +336,11 @@ fun PromoBanners(modifier: Modifier = Modifier) {
                         .background(NearBlack, RoundedCornerShape(20.dp))
                         .clickable {}
                 ) {
-                    // Red left accent stripe
+                    // Left accent stripe
                     Box(
-                        Modifier.width(4.dp).fillMaxHeight()
+                        Modifier.width(3.dp).fillMaxHeight()
                             .background(
-                                Brush.verticalGradient(listOf(BrandRed, BrandRed.copy(0.3f))),
+                                Brush.verticalGradient(listOf(AppWhite.copy(0.6f), AppWhite.copy(0.1f))),
                                 RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)
                             )
                     )
@@ -350,7 +350,8 @@ fun PromoBanners(modifier: Modifier = Modifier) {
                     ) {
                         Column(Modifier.weight(1f)) {
                             Box(
-                                Modifier.background(BrandRed, RoundedCornerShape(6.dp))
+                                Modifier.background(AppWhite.copy(0.15f), RoundedCornerShape(6.dp))
+                                    .border(0.5.dp, AppWhite.copy(0.3f), RoundedCornerShape(6.dp))
                                     .padding(horizontal = 8.dp, vertical = 3.dp)
                             ) {
                                 Text(
@@ -426,11 +427,11 @@ fun RestaurantCard(restaurant: Restaurant, onClick: () -> Unit, modifier: Modifi
                 if (restaurant.promo != null) {
                     Box(
                         Modifier.padding(12.dp).align(Alignment.TopStart)
-                            .background(BrandRed, RoundedCornerShape(8.dp))
+                            .background(AppWhite, RoundedCornerShape(8.dp))
                             .padding(horizontal = 10.dp, vertical = 5.dp)
                     ) {
                         Text(
-                            restaurant.promo, color = AppWhite, fontSize = 10.sp,
+                            restaurant.promo, color = NearBlack, fontSize = 10.sp,
                             fontWeight = FontWeight.ExtraBold, letterSpacing = 0.3.sp
                         )
                     }
@@ -548,7 +549,7 @@ fun FavoriteButton(isFav: Boolean, onToggle: () -> Unit, modifier: Modifier = Mo
         Icon(
             if (isFav) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
             "Favorito",
-            tint = if (isFav) BrandRed else NearBlack.copy(0.65f),
+            tint = if (isFav) BrandBlack else NearBlack.copy(0.65f),
             modifier = Modifier.size(18.dp).scale(sc)
         )
     }
@@ -559,7 +560,7 @@ fun FavoriteButton(isFav: Boolean, onToggle: () -> Unit, modifier: Modifier = Mo
 fun SectionHeader(title: String, modifier: Modifier = Modifier) {
     Row(modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.width(4.dp).height(20.dp).background(BrandRed, RoundedCornerShape(2.dp)))
+            Box(Modifier.width(4.dp).height(20.dp).background(BrandBlack, RoundedCornerShape(2.dp)))
             Spacer(Modifier.width(10.dp))
             Text(
                 title, color = NearBlack, fontSize = 20.sp,
@@ -586,9 +587,9 @@ fun CartBar(count: Int, total: Int, onClick: () -> Unit) {
         Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    Modifier.size(30.dp).background(BrandRed, RoundedCornerShape(9.dp)),
+                    Modifier.size(30.dp).background(AppWhite, RoundedCornerShape(9.dp)),
                     contentAlignment = Alignment.Center
-                ) { Text("$count", color = AppWhite, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold) }
+                ) { Text("$count", color = NearBlack, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold) }
                 Spacer(Modifier.width(12.dp))
                 Text("Ver mi carrito", color = AppWhite, fontSize = 15.sp, fontWeight = FontWeight.Bold)
             }

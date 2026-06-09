@@ -55,9 +55,9 @@ class RestaurantDetailActivity : AppCompatActivity() {
             binding.textDetailStatus.setTextColor(Color.parseColor("#2E7D32"))
         } else {
             binding.layoutDetailStatus.setBackgroundResource(R.drawable.bg_closed_badge)
-            binding.dotDetailStatus.setBackgroundColor(Color.parseColor("#C62828"))
+            binding.dotDetailStatus.setBackgroundColor(Color.parseColor("#9E9E9E"))
             binding.textDetailStatus.text = "Cerrado"
-            binding.textDetailStatus.setTextColor(Color.parseColor("#C62828"))
+            binding.textDetailStatus.setTextColor(Color.parseColor("#6B6B6B"))
         }
 
         setSupportActionBar(binding.toolbar)

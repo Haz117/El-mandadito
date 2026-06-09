@@ -12,7 +12,7 @@
         <!-- Typography — medium weight for a premium feel -->
         <item name="android:fontFamily">sans-serif</item>
         <!-- Status bar -->
-        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="android:statusBarColor">@color/primary</item>
         <item name="android:windowLightStatusBar">false</item>
         <!-- Shape system -->
         <item name="shapeAppearanceSmallComponent">@style/Shape.ElMandadito.Small</item>

@@ -55,9 +55,9 @@ class RestaurantAdapter(
                 root.alpha = 1f
             } else {
                 layoutStatus.setBackgroundResource(R.drawable.bg_closed_badge)
-                dotStatus.setBackgroundColor(Color.parseColor("#C62828"))
+                dotStatus.setBackgroundColor(Color.parseColor("#9E9E9E"))
                 textStatus.text = "Cerrado"
-                textStatus.setTextColor(Color.parseColor("#C62828"))
+                textStatus.setTextColor(Color.parseColor("#6B6B6B"))
                 root.alpha = 0.65f
             }
 

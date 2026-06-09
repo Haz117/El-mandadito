@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand -->
-    <color name="primary">#E53935</color>
-    <color name="primary_dark">#B71C1C</color>
-    <color name="primary_light">#F0F0F0</color>
+    <!-- Brand — pure black/white minimalist -->
+    <color name="primary">#000000</color>
+    <color name="primary_dark">#1A1A1A</color>
+    <color name="primary_light">#F5F5F5</color>
     <color name="accent">#FF9500</color>
     <color name="accent_dark">#E07B00</color>
 
