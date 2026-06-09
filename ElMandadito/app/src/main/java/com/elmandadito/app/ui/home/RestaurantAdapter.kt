@@ -18,6 +18,12 @@ class RestaurantAdapter(
 ) : ListAdapter<Restaurant, RestaurantAdapter.VH>(DIFF) {
 
     private var cartCounts: Map<String, Int> = emptyMap()
+    private val animatedPositions = mutableSetOf<Int>()
+
+    override fun submitList(list: List<Restaurant>?) {
+        animatedPositions.clear()
+        super.submitList(list)
+    }
 
     fun updateCartBadges(counts: Map<String, Int>) {
         val old = cartCounts
@@ -91,6 +97,17 @@ class RestaurantAdapter(
             }
 
             root.setOnClickListener { if (r.isOpen) onClick(r) }
+        }
+
+        if (animatedPositions.add(position)) {
+            holder.itemView.alpha = 0f
+            holder.itemView.translationY = 44f
+            holder.itemView.animate()
+                .alpha(1f).translationY(0f)
+                .setStartDelay((position * 55L).coerceAtMost(280L))
+                .setDuration(360)
+                .setInterpolator(android.view.animation.DecelerateInterpolator(2f))
+                .start()
         }
     }
 

@@ -1,9 +1,11 @@
 package com.elmandadito.app.ui.auth
 
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.text.InputType
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.EditorInfo
 import androidx.appcompat.app.AppCompatActivity
 import com.elmandadito.app.R
@@ -59,6 +61,27 @@ class RegisterActivity : AppCompatActivity() {
             finish()
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
+
+        animateEntrance()
+    }
+
+    private fun animateEntrance() {
+        val views = listOf<View>(
+            binding.layoutLogo, binding.textHeadline,
+            binding.layoutName, binding.layoutEmail,
+            binding.layoutPassword, binding.layoutConfirmPassword,
+            binding.btnRegister
+        )
+        views.forEachIndexed { i, view ->
+            view.alpha = 0f
+            view.translationY = 42f
+            view.animate()
+                .alpha(1f).translationY(0f)
+                .setStartDelay(80L + i * 60L)
+                .setDuration(400)
+                .setInterpolator(DecelerateInterpolator(2f))
+                .start()
+        }
     }
 
     private fun attemptRegister() {
@@ -85,6 +108,8 @@ class RegisterActivity : AppCompatActivity() {
     private fun showError(msg: String) {
         binding.textError.text = msg
         binding.textError.visibility = View.VISIBLE
+        ObjectAnimator.ofFloat(binding.textError, "translationX", 0f, -12f, 12f, -8f, 8f, -4f, 4f, 0f)
+            .apply { duration = 450; start() }
     }
 
     private fun goToMain() {

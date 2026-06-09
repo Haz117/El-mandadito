@@ -1,11 +1,15 @@
 package com.elmandadito.app.ui.profile
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.widget.EditText
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -33,6 +37,12 @@ class ProfileFragment : Fragment() {
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
 
+    private var lastOrderCount = -1
+    private var lastFavCount = -1
+    private var lastPoints = -1
+    private var lastProgress = -1
+    private var starsAnimated = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -59,19 +69,38 @@ class ProfileFragment : Fragment() {
         val favorites = FavoritesManager.getFavoriteIds().size
         val points = OrderHistoryManager.getLoyaltyPoints()
 
-        binding.statOrders.text = orders.size.toString()
-        binding.statFavorites.text = favorites.toString()
-        binding.statPoints.text = points.toString()
+        if (orders.size != lastOrderCount) { lastOrderCount = orders.size; animateStat(binding.statOrders, orders.size) }
+        else binding.statOrders.text = orders.size.toString()
+        if (favorites != lastFavCount) { lastFavCount = favorites; animateStat(binding.statFavorites, favorites) }
+        else binding.statFavorites.text = favorites.toString()
+        if (points != lastPoints) { lastPoints = points; animateStat(binding.statPoints, points) }
+        else binding.statPoints.text = points.toString()
 
         val (tier, tierMin, tierMax) = OrderHistoryManager.getLoyaltyTier(points)
         val progress = if (tierMax > tierMin) ((points - tierMin) * 100 / (tierMax - tierMin)).coerceIn(0, 100) else 100
         binding.textLoyaltyTier.text = "Nivel $tier · $points pts"
-        binding.progressLoyalty.progress = progress
+        if (progress != lastProgress) {
+            lastProgress = progress
+            ObjectAnimator.ofInt(binding.progressLoyalty, "progress", 0, progress).apply {
+                duration = 900; interpolator = DecelerateInterpolator(1.5f); start()
+            }
+        } else {
+            binding.progressLoyalty.progress = progress
+        }
         val nextTierPts = tierMax - points
         binding.textLoyaltyNext.text = if (points >= 600) "¡Nivel máximo!" else "Faltan $nextTierPts pts para el siguiente nivel"
 
         binding.layoutOrderHistorySection.visibility = if (orders.isEmpty()) View.GONE else View.VISIBLE
         binding.layoutEmptyHistory.visibility = if (orders.isEmpty()) View.VISIBLE else View.GONE
+    }
+
+    private fun animateStat(textView: android.widget.TextView, target: Int) {
+        ValueAnimator.ofInt(0, target).apply {
+            duration = 700
+            interpolator = DecelerateInterpolator(1.5f)
+            addUpdateListener { textView.text = (it.animatedValue as Int).toString() }
+            start()
+        }
     }
 
     private fun refreshReputation() {
@@ -122,6 +151,21 @@ class ProfileFragment : Fragment() {
         }
         starViews.take(stars).forEach { it.setColorFilter(android.graphics.Color.parseColor(starTint)) }
         starViews.drop(stars).forEach { it.setColorFilter(android.graphics.Color.parseColor("#80FFFFFF")) }
+
+        if (!starsAnimated) {
+            starsAnimated = true
+            starViews.forEachIndexed { index, imageView ->
+                imageView.alpha = 0f
+                imageView.scaleX = 0.4f
+                imageView.scaleY = 0.4f
+                imageView.animate()
+                    .alpha(1f).scaleX(1f).scaleY(1f)
+                    .setStartDelay(index * 70L)
+                    .setDuration(280)
+                    .setInterpolator(OvershootInterpolator(1.8f))
+                    .start()
+            }
+        }
     }
 
     private fun setupOrderHistory() {

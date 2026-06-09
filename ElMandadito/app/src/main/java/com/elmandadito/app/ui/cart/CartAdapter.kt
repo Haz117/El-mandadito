@@ -19,13 +19,27 @@ class CartAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH =
         VH(ItemCartBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
+    override fun onBindViewHolder(holder: VH, position: Int, payloads: List<Any>) {
+        if (payloads.isNotEmpty()) {
+            val item = getItem(position)
+            with(holder.b) {
+                textQty.text = item.quantity.toString()
+                textTotalPrice.text = "$${item.totalPrice}"
+                textQty.animate()
+                    .scaleX(1.45f).scaleY(1.45f).setDuration(90).withEndAction {
+                        textQty.animate().scaleX(1f).scaleY(1f).setDuration(130).start()
+                    }.start()
+            }
+            return
+        }
+        super.onBindViewHolder(holder, position, payloads)
+    }
+
     override fun onBindViewHolder(holder: VH, position: Int) {
         val item = getItem(position)
         with(holder.b) {
-            // Use category directly from CartItem — no more string matching
             imgCartFood.setImageResource(categoryIcon(item.restaurantCategory))
             viewCartIconBg.setBackgroundResource(categoryBg(item.restaurantCategory))
-
             textName.text = item.menuItem.name
             textUnitPrice.text = "$${item.menuItem.price} c/u"
             textTotalPrice.text = "$${item.totalPrice}"
@@ -60,6 +74,8 @@ class CartAdapter(
             override fun areItemsTheSame(a: CartItem, b: CartItem) = a.menuItem.id == b.menuItem.id
             override fun areContentsTheSame(a: CartItem, b: CartItem) =
                 a.menuItem.id == b.menuItem.id && a.quantity == b.quantity
+            override fun getChangePayload(oldItem: CartItem, newItem: CartItem): Any? =
+                if (oldItem.quantity != newItem.quantity) "QTY" else null
         }
     }
 }

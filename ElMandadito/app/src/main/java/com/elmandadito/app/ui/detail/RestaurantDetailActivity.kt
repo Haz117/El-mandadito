@@ -180,19 +180,29 @@ class RestaurantDetailActivity : AppCompatActivity() {
         sheetBinding.badgePopularSheet.visibility = if (menuItem.isPopular) View.VISIBLE else View.GONE
 
         var quantity = 1
-        fun updateButton() {
+        fun updateButton(animate: Boolean = false) {
             val total = menuItem.price * quantity
             sheetBinding.textSheetQty.text = quantity.toString()
             sheetBinding.textSheetItemPrice.text = "$${menuItem.price}"
             sheetBinding.btnAddToCartSheet.text = "Agregar $quantity · $$total"
+            if (animate) {
+                sheetBinding.textSheetQty.animate()
+                    .scaleX(1.45f).scaleY(1.45f).setDuration(85).withEndAction {
+                        sheetBinding.textSheetQty.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
+                    }.start()
+                sheetBinding.btnAddToCartSheet.animate()
+                    .scaleX(1.03f).scaleY(1.03f).setDuration(80).withEndAction {
+                        sheetBinding.btnAddToCartSheet.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
+                    }.start()
+            }
         }
         updateButton()
 
         sheetBinding.btnSheetDecrease.setOnClickListener {
-            if (quantity > 1) { quantity--; updateButton() }
+            if (quantity > 1) { quantity--; updateButton(animate = true) }
         }
         sheetBinding.btnSheetIncrease.setOnClickListener {
-            if (quantity < 10) { quantity++; updateButton() }
+            if (quantity < 10) { quantity++; updateButton(animate = true) }
         }
 
         sheetBinding.btnAddToCartSheet.setOnClickListener {
