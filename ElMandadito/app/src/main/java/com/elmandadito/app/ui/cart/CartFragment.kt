@@ -1,5 +1,7 @@
 package com.elmandadito.app.ui.cart
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
@@ -8,6 +10,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -36,6 +39,7 @@ class CartFragment : Fragment() {
 
     private var selectedPayment = "cash"
     private var contentShown = false
+    private var scooterAnimator: ObjectAnimator? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -53,6 +57,7 @@ class CartFragment : Fragment() {
         )
         binding.recyclerCart.adapter = adapter
         setupSwipeToDelete()
+        startScooterFloat()
 
         CartRepository.items.observe(viewLifecycleOwner) { items ->
             if (items.isEmpty()) {
@@ -227,12 +232,28 @@ class CartFragment : Fragment() {
         OrderHistoryManager.saveOrder(restaurantName, total, itemCount, paymentLabel)
 
         val orderNumber = Random.nextInt(1, 99999)
-        CartRepository.clearCart()
 
-        val intent = Intent(requireContext(), OrderTrackingActivity::class.java)
-        intent.putExtra("order_number", orderNumber)
-        startActivity(intent)
-        requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+        binding.btnCheckout.isEnabled = false
+        binding.btnCheckout.text = "✓  Pedido confirmado"
+        binding.btnCheckout.animate()
+            .scaleX(1.06f).scaleY(1.06f).setDuration(130).withEndAction {
+                binding.btnCheckout.animate().scaleX(1f).scaleY(1f).setDuration(110).withEndAction {
+                    CartRepository.clearCart()
+                    val intent = Intent(requireContext(), OrderTrackingActivity::class.java)
+                    intent.putExtra("order_number", orderNumber)
+                    startActivity(intent)
+                    requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                }.start()
+            }.start()
+    }
+
+    private fun startScooterFloat() {
+        scooterAnimator = ObjectAnimator.ofFloat(binding.imgEmptyScooter, "translationY", 0f, -18f, 0f).apply {
+            duration = 2400
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+            start()
+        }
     }
 
     private fun updateTotals() {
@@ -274,6 +295,7 @@ class CartFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        scooterAnimator?.cancel()
         _binding = null
     }
 }

@@ -81,11 +81,17 @@ fun HomeScreen(
     val cartItems  by CartRepository.items.observeAsState(mutableListOf())
     val cartCount  = cartItems.sumOf { it.quantity }
     var selectedCat by remember { mutableStateOf("all") }
-    val restaurants = remember(selectedCat) {
-        if (selectedCat == "all") SampleData.restaurants
-        else SampleData.restaurants.filter { it.category == selectedCat }
+    var query by remember { mutableStateOf("") }
+    val restaurants = remember(selectedCat, query) {
+        val base = if (selectedCat == "all") SampleData.restaurants
+                   else SampleData.restaurants.filter { it.category == selectedCat }
+        if (query.isBlank()) base
+        else base.filter { r ->
+            r.name.contains(query, ignoreCase = true) ||
+            r.tags.any { t -> t.contains(query, ignoreCase = true) }
+        }
     }
-    val openCount = remember(selectedCat) { restaurants.count { it.isOpen } }
+    val openCount = remember(selectedCat, query) { restaurants.count { it.isOpen } }
 
     // ── Loading / skeleton ────────────────────────────────────────────────
     var loaded by remember { mutableStateOf(false) }
@@ -98,7 +104,7 @@ fun HomeScreen(
         LazyColumn(contentPadding = PaddingValues(bottom = if (cartCount > 0) 96.dp else 24.dp)) {
 
             item { TopHeader(openCount) }
-            item { SearchRow(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) }
+            item { SearchRow(query, { query = it }, Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) }
             item { CategoryRow(selectedCat, Modifier.padding(top = 2.dp, bottom = 4.dp)) { selectedCat = it } }
 
             item(key = "divider1") { SectionDivider() }
@@ -156,7 +162,9 @@ fun HomeScreen(
                         .animateItem(fadeInSpec = tween(300))
                 )
             }
-            if (restaurants.isEmpty()) item { EmptyState() }
+            if (restaurants.isEmpty()) item {
+                if (query.isNotBlank()) SearchEmptyState(query) else EmptyState()
+            }
         }
 
         AnimatedVisibility(
@@ -308,9 +316,7 @@ private fun TopHeader(openCount: Int) {
 
 // ─── SEARCH ROW ──────────────────────────────────────────────────────────────
 @Composable
-fun SearchRow(modifier: Modifier = Modifier) {
-    var query by remember { mutableStateOf("") }
-
+fun SearchRow(query: String = "", onQueryChange: (String) -> Unit = {}, modifier: Modifier = Modifier) {
     Row(modifier, Arrangement.spacedBy(10.dp), Alignment.CenterVertically) {
         Row(
             Modifier.weight(1f).height(50.dp)
@@ -324,14 +330,14 @@ fun SearchRow(modifier: Modifier = Modifier) {
                 if (query.isEmpty()) Text("Busca restaurantes o platillos", color = MidGray, fontSize = 14.sp)
                 BasicTextField(
                     value = query,
-                    onValueChange = { query = it },
+                    onValueChange = onQueryChange,
                     textStyle = TextStyle(color = NearBlack, fontSize = 14.sp),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
             if (query.isNotEmpty()) {
-                IconButton({ query = "" }, Modifier.size(32.dp)) {
+                IconButton({ onQueryChange("") }, Modifier.size(32.dp)) {
                     Icon(Icons.Filled.Close, "Limpiar", tint = MidGray, modifier = Modifier.size(15.dp))
                 }
             }
@@ -732,6 +738,29 @@ fun CartBar(count: Int, total: Int, onClick: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+// ─── SEARCH EMPTY STATE ───────────────────────────────────────────────────────
+@Composable
+private fun SearchEmptyState(query: String) {
+    Column(
+        Modifier.fillMaxWidth().padding(vertical = 52.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            Modifier.size(80.dp).background(LightGray, RoundedCornerShape(20.dp)),
+            contentAlignment = Alignment.Center
+        ) { Text("🔍", fontSize = 36.sp) }
+        Spacer(Modifier.height(16.dp))
+        Text("Sin resultados para", color = MidGray, fontSize = 14.sp)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "\"$query\"", color = NearBlack, fontSize = 18.sp,
+            fontWeight = FontWeight.Bold, letterSpacing = (-0.3).sp
+        )
+        Spacer(Modifier.height(8.dp))
+        Text("Intenta con otro nombre o categoría", color = MidGray, fontSize = 13.sp)
     }
 }
 

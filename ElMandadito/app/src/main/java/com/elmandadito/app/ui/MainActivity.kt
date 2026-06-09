@@ -101,12 +101,16 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    private var prevCartCount = 0
+
     private fun observeCart() {
         CartRepository.items.observe(this) { items ->
             val count = items.sumOf { it.quantity }
             val badge = binding.bottomNav.getOrCreateBadge(R.id.nav_cart)
             badge.isVisible = count > 0
             if (count > 0) badge.number = count
+            if (count > prevCartCount) bounceNavItem(R.id.nav_cart)
+            prevCartCount = count
         }
     }
 
