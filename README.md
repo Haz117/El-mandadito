@@ -1,4 +1,4 @@
-# El Mandadito 🛵
+# El Mandadito 
 
 Aplicación móvil de entrega de comida a domicilio para Android, construida con Kotlin y Jetpack Compose.
 
