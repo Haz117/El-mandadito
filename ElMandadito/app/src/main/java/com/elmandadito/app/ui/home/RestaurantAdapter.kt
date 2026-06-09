@@ -80,6 +80,7 @@ class RestaurantAdapter(
                 if (isFav) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
             )
             btnFavorite.setOnClickListener {
+                it.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
                 val nowFav = FavoritesManager.toggleFavorite(r.id)
                 btnFavorite.setImageResource(
                     if (nowFav) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline

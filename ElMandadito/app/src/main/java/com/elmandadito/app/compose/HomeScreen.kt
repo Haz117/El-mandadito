@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.*
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
@@ -86,12 +87,14 @@ fun HomeScreen(
     }
     val openCount = remember(selectedCat) { restaurants.count { it.isOpen } }
 
-    // ── Screen fade-in entrance ────────────────────────────────────────────
+    // ── Loading / skeleton ────────────────────────────────────────────────
     var loaded by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { delay(80); loaded = true }
-    val screenAlpha by animateFloatAsState(if (loaded) 1f else 0f, tween(500), label = "sa")
+    LaunchedEffect(Unit) { delay(550); loaded = true }
+    val contentAlpha by animateFloatAsState(if (loaded) 1f else 0f, tween(400), label = "ca")
+    val skeletonAlpha by animateFloatAsState(if (loaded) 0f else 1f, tween(280), label = "ska")
 
-    Box(Modifier.fillMaxSize().background(AppWhite).alpha(screenAlpha)) {
+    Box(Modifier.fillMaxSize().background(AppWhite)) {
+    Box(Modifier.fillMaxSize().alpha(contentAlpha)) {
         LazyColumn(contentPadding = PaddingValues(bottom = if (cartCount > 0) 96.dp else 24.dp)) {
 
             item { TopHeader(openCount) }
@@ -163,6 +166,52 @@ fun HomeScreen(
             exit     = slideOutVertically { it } + fadeOut(tween(200))
         ) {
             CartBar(cartCount, cartItems.sumOf { it.totalPrice }, onCartClick)
+        }
+    }
+    }
+    if (skeletonAlpha > 0.01f) {
+        Box(Modifier.fillMaxSize().background(AppWhite).alpha(skeletonAlpha)) {
+            Column {
+                Box(Modifier.fillMaxWidth().height(180.dp).background(AppBlack))
+                repeat(4) { SkeletonRestaurantCard() }
+            }
+        }
+    }
+}
+}
+
+// ─── SKELETON LOADING ────────────────────────────────────────────────────────
+@Composable
+private fun SkeletonBox(modifier: Modifier = Modifier) {
+    val shimmer = rememberInfiniteTransition(label = "sk")
+    val x by shimmer.animateFloat(
+        initialValue = -600f, targetValue = 600f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = LinearEasing), RepeatMode.Restart),
+        label = "skx"
+    )
+    Box(modifier.background(
+        Brush.linearGradient(
+            listOf(Color(0xFFE8E8E8), Color(0xFFF5F5F5), Color(0xFFE8E8E8)),
+            start = Offset(x, 0f), end = Offset(x + 400f, 300f)
+        )
+    ))
+}
+
+@Composable
+private fun SkeletonRestaurantCard() {
+    Box(
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 7.dp)
+            .shadow(2.dp, RoundedCornerShape(20.dp))
+            .background(AppWhite, RoundedCornerShape(20.dp))
+    ) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            SkeletonBox(Modifier.size(90.dp).clip(RoundedCornerShape(16.dp)))
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                SkeletonBox(Modifier.fillMaxWidth(0.65f).height(14.dp).clip(RoundedCornerShape(7.dp)))
+                SkeletonBox(Modifier.fillMaxWidth(0.85f).height(10.dp).clip(RoundedCornerShape(5.dp)))
+                SkeletonBox(Modifier.fillMaxWidth(0.45f).height(10.dp).clip(RoundedCornerShape(5.dp)))
+            }
         }
     }
 }

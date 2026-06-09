@@ -44,8 +44,14 @@ class CartAdapter(
             textUnitPrice.text = "$${item.menuItem.price} c/u"
             textTotalPrice.text = "$${item.totalPrice}"
             textQty.text = item.quantity.toString()
-            btnIncrease.setOnClickListener { onIncrease(item.menuItem.id) }
-            btnDecrease.setOnClickListener { onDecrease(item.menuItem.id) }
+            btnIncrease.setOnClickListener {
+                it.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+                onIncrease(item.menuItem.id)
+            }
+            btnDecrease.setOnClickListener {
+                it.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+                onDecrease(item.menuItem.id)
+            }
         }
     }
 

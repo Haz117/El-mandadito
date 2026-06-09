@@ -199,13 +199,20 @@ class RestaurantDetailActivity : AppCompatActivity() {
         updateButton()
 
         sheetBinding.btnSheetDecrease.setOnClickListener {
-            if (quantity > 1) { quantity--; updateButton(animate = true) }
+            if (quantity > 1) {
+                it.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+                quantity--; updateButton(animate = true)
+            }
         }
         sheetBinding.btnSheetIncrease.setOnClickListener {
-            if (quantity < 10) { quantity++; updateButton(animate = true) }
+            if (quantity < 10) {
+                it.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+                quantity++; updateButton(animate = true)
+            }
         }
 
         sheetBinding.btnAddToCartSheet.setOnClickListener {
+            it.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
             dialog.dismiss()
             doAddToCart(menuItem, quantity)
         }

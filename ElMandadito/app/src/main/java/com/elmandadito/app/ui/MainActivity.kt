@@ -59,8 +59,19 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNav.selectedItemId = R.id.nav_cart
     }
 
+    private fun bounceNavItem(itemId: Int) {
+        val menuView = binding.bottomNav.getChildAt(0) as? android.view.ViewGroup ?: return
+        val index = listOf(R.id.nav_home, R.id.nav_favorites, R.id.nav_cart, R.id.nav_profile).indexOf(itemId)
+        if (index < 0 || index >= menuView.childCount) return
+        val view = menuView.getChildAt(index)
+        view.animate().scaleX(1.22f).scaleY(1.22f).setDuration(100)
+            .withEndAction { view.animate().scaleX(1f).scaleY(1f).setDuration(150).start() }
+            .start()
+    }
+
     private fun setupBottomNav() {
         binding.bottomNav.setOnItemSelectedListener { item ->
+            bounceNavItem(item.itemId)
             when (item.itemId) {
                 R.id.nav_home      -> switchFragment(ComposeHomeFragment())
                 R.id.nav_favorites -> switchFragment(FavoritesFragment())

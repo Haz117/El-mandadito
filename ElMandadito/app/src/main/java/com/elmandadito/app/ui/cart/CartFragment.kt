@@ -143,7 +143,7 @@ class CartFragment : Fragment() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val pos = viewHolder.adapterPosition
                 val removedItem = adapter.currentList[pos]
-
+                viewHolder.itemView.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
                 CartRepository.removeItem(removedItem)
 
                 Snackbar.make(binding.root, "${removedItem.menuItem.name} eliminado", Snackbar.LENGTH_LONG)
