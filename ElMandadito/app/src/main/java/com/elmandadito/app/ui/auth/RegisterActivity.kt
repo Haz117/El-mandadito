@@ -7,15 +7,24 @@ import android.text.InputType
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.EditorInfo
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.elmandadito.app.R
-import com.elmandadito.app.data.UserAuthManager
+import com.elmandadito.app.data.UserPrefsManager
 import com.elmandadito.app.databinding.ActivityRegisterBinding
 import com.elmandadito.app.ui.MainActivity
+import com.elmandadito.app.ui.common.UiState
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRegisterBinding
+    private val viewModel: AuthViewModel by viewModels()
     private var passwordVisible = false
     private var confirmPasswordVisible = false
 
@@ -23,7 +32,7 @@ class RegisterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        com.elmandadito.app.data.UserPrefsManager.init(this)
+        UserPrefsManager.init(this)
 
         binding.editConfirmPassword.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) { attemptRegister(); true } else false
@@ -62,7 +71,30 @@ class RegisterActivity : AppCompatActivity() {
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
 
+        observeAuthState()
         animateEntrance()
+    }
+
+    private fun observeAuthState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    when (state) {
+                        is UiState.Loading -> {
+                            binding.btnRegister.isEnabled = false
+                            binding.textError.visibility = View.GONE
+                        }
+                        is UiState.Success -> goToMain()
+                        is UiState.Error -> {
+                            binding.btnRegister.isEnabled = true
+                            showError(state.message)
+                            viewModel.resetState()
+                        }
+                        is UiState.Idle -> binding.btnRegister.isEnabled = true
+                    }
+                }
+            }
+        }
     }
 
     private fun animateEntrance() {
@@ -87,11 +119,11 @@ class RegisterActivity : AppCompatActivity() {
     private fun attemptRegister() {
         val name = binding.editName.text?.toString()?.trim() ?: ""
         val email = binding.editEmail.text?.toString()?.trim() ?: ""
-        val curp = binding.editCurp.text?.toString()?.trim() ?: ""
+        val phone = binding.editCurp.text?.toString()?.trim() ?: ""
         val password = binding.editPassword.text?.toString() ?: ""
         val confirm = binding.editConfirmPassword.text?.toString() ?: ""
 
-        if (name.isEmpty() || email.isEmpty() || curp.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
+        if (name.isEmpty() || email.isEmpty() || phone.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
             showError("Completa todos los campos")
             return
         }
@@ -100,10 +132,7 @@ class RegisterActivity : AppCompatActivity() {
             return
         }
 
-        when (val result = UserAuthManager.register(name, email, password, curp)) {
-            UserAuthManager.RegisterResult.Success -> goToMain()
-            is UserAuthManager.RegisterResult.Error -> showError(result.message)
-        }
+        viewModel.register(name, email, password, phone)
     }
 
     private fun showError(msg: String) {

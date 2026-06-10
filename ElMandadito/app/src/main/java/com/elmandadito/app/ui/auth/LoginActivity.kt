@@ -7,22 +7,31 @@ import android.text.InputType
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.EditorInfo
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.elmandadito.app.R
-import com.elmandadito.app.data.UserAuthManager
+import com.elmandadito.app.data.UserPrefsManager
 import com.elmandadito.app.databinding.ActivityLoginBinding
 import com.elmandadito.app.ui.MainActivity
+import com.elmandadito.app.ui.common.UiState
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
+    private val viewModel: AuthViewModel by viewModels()
     private var passwordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        com.elmandadito.app.data.UserPrefsManager.init(this)
+        UserPrefsManager.init(this)
 
         binding.editPassword.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) { attemptLogin(); true } else false
@@ -48,7 +57,30 @@ class LoginActivity : AppCompatActivity() {
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
 
+        observeAuthState()
         animateEntrance()
+    }
+
+    private fun observeAuthState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    when (state) {
+                        is UiState.Loading -> {
+                            binding.btnLogin.isEnabled = false
+                            binding.textError.visibility = View.GONE
+                        }
+                        is UiState.Success -> goToMain()
+                        is UiState.Error -> {
+                            binding.btnLogin.isEnabled = true
+                            showError(state.message)
+                            viewModel.resetState()
+                        }
+                        is UiState.Idle -> binding.btnLogin.isEnabled = true
+                    }
+                }
+            }
+        }
     }
 
     private fun animateEntrance() {
@@ -78,18 +110,7 @@ class LoginActivity : AppCompatActivity() {
             return
         }
 
-        when (UserAuthManager.login(email, password)) {
-            UserAuthManager.LoginResult.Success -> goToMain()
-            UserAuthManager.LoginResult.NoAccount -> {
-                showError("Sin cuenta registrada. Crea una primero.")
-                binding.btnGoRegister.postDelayed({
-                    startActivity(Intent(this, RegisterActivity::class.java))
-                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-                }, 1200)
-            }
-            UserAuthManager.LoginResult.WrongCredentials -> showError("Correo o contraseña incorrectos")
-            UserAuthManager.LoginResult.Blocked -> showError("Cuenta bloqueada por sanciones. Contacta soporte.")
-        }
+        viewModel.login(email, password)
     }
 
     private fun showError(msg: String) {
