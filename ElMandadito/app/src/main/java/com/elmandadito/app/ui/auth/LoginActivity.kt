@@ -70,7 +70,12 @@ class LoginActivity : AppCompatActivity() {
                             binding.btnLogin.isEnabled = false
                             binding.textError.visibility = View.GONE
                         }
-                        is UiState.Success -> goToMain()
+                        is UiState.Success -> {
+                            UserPrefsManager.setName(state.data.user.name)
+                            UserPrefsManager.setEmail(state.data.user.email)
+                            UserPrefsManager.setLoggedIn(true)
+                            goToMain()
+                        }
                         is UiState.Error -> {
                             binding.btnLogin.isEnabled = true
                             showError(state.message)

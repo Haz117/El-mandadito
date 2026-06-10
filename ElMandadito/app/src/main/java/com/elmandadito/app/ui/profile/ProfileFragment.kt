@@ -13,7 +13,13 @@ import android.view.animation.OvershootInterpolator
 import android.widget.EditText
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import com.elmandadito.app.R
 import com.elmandadito.app.data.AddressManager
 import com.elmandadito.app.data.CartRepository
@@ -35,10 +41,12 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 
+@AndroidEntryPoint
 class ProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: ProfileViewModel by viewModels()
 
     private var lastOrderCount = -1
     private var lastFavCount = -1
@@ -56,6 +64,22 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupActions()
+        observeLogout()
+    }
+
+    private fun observeLogout() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.loggedOut.collect { loggedOut ->
+                    if (loggedOut) {
+                        UserAuthManager.logout()
+                        startActivity(Intent(requireContext(), com.elmandadito.app.ui.auth.LoginActivity::class.java))
+                        requireActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+                        requireActivity().finish()
+                    }
+                }
+            }
+        }
     }
 
     override fun onResume() {
@@ -319,12 +343,7 @@ class ProfileFragment : Fragment() {
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Cerrar sesión")
                 .setMessage("¿Deseas cerrar sesión?")
-                .setPositiveButton("Cerrar sesión") { _, _ ->
-                    UserAuthManager.logout()
-                    startActivity(Intent(requireContext(), LoginActivity::class.java))
-                    requireActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-                    requireActivity().finish()
-                }
+                .setPositiveButton("Cerrar sesión") { _, _ -> viewModel.logout() }
                 .setNegativeButton("Cancelar", null)
                 .show()
         }

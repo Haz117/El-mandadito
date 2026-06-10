@@ -84,7 +84,13 @@ class RegisterActivity : AppCompatActivity() {
                             binding.btnRegister.isEnabled = false
                             binding.textError.visibility = View.GONE
                         }
-                        is UiState.Success -> goToMain()
+                        is UiState.Success -> {
+                            UserPrefsManager.setName(state.data.user.name)
+                            UserPrefsManager.setEmail(state.data.user.email)
+                            UserPrefsManager.setLoggedIn(true)
+                            UserPrefsManager.setStarRating(5)
+                            goToMain()
+                        }
                         is UiState.Error -> {
                             binding.btnRegister.isEnabled = true
                             showError(state.message)

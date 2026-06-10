@@ -16,7 +16,9 @@ import com.elmandadito.app.compose.ComposeHomeFragment
 import com.elmandadito.app.ui.cart.CartFragment
 import com.elmandadito.app.ui.favorites.FavoritesFragment
 import com.elmandadito.app.ui.profile.ProfileFragment
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding

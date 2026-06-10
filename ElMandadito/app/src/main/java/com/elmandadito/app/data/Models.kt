@@ -14,7 +14,8 @@ data class Restaurant(
     val isOpen: Boolean = true,
     val imageUri: String = "",
     val isNew: Boolean = false,
-    val menu: List<MenuCategory>
+    val menu: List<MenuCategory>,
+    val networkId: Long = 0L   // >0 when loaded from the backend
 )
 
 data class MenuCategory(

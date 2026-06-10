@@ -15,8 +15,12 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elmandadito.app.R
 import com.elmandadito.app.data.BusinessRepository
@@ -25,11 +29,19 @@ import com.elmandadito.app.data.MenuItem
 import com.elmandadito.app.data.SampleData
 import com.elmandadito.app.databinding.ActivityRestaurantDetailBinding
 import com.elmandadito.app.databinding.BottomSheetAddItemBinding
+import com.elmandadito.app.network.dto.toMenuCategories
+import com.elmandadito.app.network.dto.toRestaurant
 import com.elmandadito.app.ui.MainActivity
+import com.elmandadito.app.ui.common.UiState
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class RestaurantDetailActivity : AppCompatActivity() {
+
+    private val viewModel: RestaurantDetailViewModel by viewModels()
 
     private lateinit var binding: ActivityRestaurantDetailBinding
     private lateinit var menuAdapter: MenuAdapter
@@ -43,51 +55,47 @@ class RestaurantDetailActivity : AppCompatActivity() {
         binding = ActivityRestaurantDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val restaurantId = intent.getIntExtra("restaurant_id", -1)
+        val networkId = intent.getLongExtra("restaurant_id_long", 0L)
+        val localId = intent.getIntExtra("restaurant_id", -1)
+
         BusinessRepository.init(this)
-        val restaurant = SampleData.restaurants.find { it.id == restaurantId }
-            ?: BusinessRepository.getAll().map { it.toRestaurant() }.find { it.id == restaurantId }
-            ?: run { finish(); return }
-        restaurantName = restaurant.name
-        restaurantCategory = restaurant.category
-        isRestaurantOpen = restaurant.isOpen
-
-        binding.viewHeroBg.setBackgroundResource(categoryBg(restaurant.category))
-        binding.imgHeroFood.setImageResource(categoryIcon(restaurant.category))
-        binding.textRestaurantName.text = restaurant.name
-        binding.textRating.text = restaurant.rating.toString()
-        binding.textTime.text = restaurant.deliveryTime
-        binding.textDeliveryFee.text = if (restaurant.deliveryFee == 0) "Gratis" else "$${restaurant.deliveryFee}"
-
-        if (restaurant.isOpen) {
-            binding.layoutDetailStatus.setBackgroundResource(R.drawable.bg_open_badge)
-            binding.dotDetailStatus.setBackgroundColor(Color.parseColor("#2E7D32"))
-            binding.textDetailStatus.text = "Abierto"
-            binding.textDetailStatus.setTextColor(Color.parseColor("#2E7D32"))
-        } else {
-            binding.layoutDetailStatus.setBackgroundResource(R.drawable.bg_closed_badge)
-            binding.dotDetailStatus.setBackgroundColor(Color.parseColor("#9E9E9E"))
-            binding.textDetailStatus.text = "Cerrado"
-            binding.textDetailStatus.setTextColor(Color.parseColor("#6B6B6B"))
-        }
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = restaurant.name
         binding.toolbar.setNavigationOnClickListener {
             onBackPressedDispatcher.onBackPressed()
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
 
-        menuAdapter = MenuAdapter(restaurant.category) { menuItem ->
-            showItemCustomizationSheet(menuItem)
-        }
+        menuAdapter = MenuAdapter("other") { menuItem -> showItemCustomizationSheet(menuItem) }
         binding.recyclerMenu.layoutManager = LinearLayoutManager(this)
         binding.recyclerMenu.adapter = menuAdapter
-        menuAdapter.submitSections(restaurant.menu)
 
-        animateHeroEntrance()
-        setupCategoryTabs(restaurant.menu.map { it.name })
+        if (networkId > 0L) {
+            // Load from backend
+            viewModel.load(networkId)
+            observeViewModel()
+        } else {
+            // Load from local SampleData / BusinessRepository
+            val restaurant = SampleData.restaurants.find { it.id == localId }
+                ?: BusinessRepository.getAll().map { it.toRestaurant() }.find { it.id == localId }
+                ?: run { finish(); return }
+            populateUi(
+                name = restaurant.name,
+                category = restaurant.category,
+                rating = restaurant.rating.toString(),
+                time = restaurant.deliveryTime,
+                fee = if (restaurant.deliveryFee == 0) "Gratis" else "$${restaurant.deliveryFee}",
+                isOpen = restaurant.isOpen,
+                menu = restaurant.menu.map { it.name }
+            )
+            restaurantName = restaurant.name
+            restaurantCategory = restaurant.category
+            isRestaurantOpen = restaurant.isOpen
+            menuAdapter = MenuAdapter(restaurant.category) { menuItem -> showItemCustomizationSheet(menuItem) }
+            binding.recyclerMenu.adapter = menuAdapter
+            menuAdapter.submitSections(restaurant.menu)
+        }
 
         binding.editMenuSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -122,6 +130,73 @@ class RestaurantDetailActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+    }
+
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.restaurant.collect { state ->
+                        if (state is UiState.Success) {
+                            val r = state.data
+                            restaurantName = r.name
+                            restaurantCategory = r.category?.lowercase() ?: "other"
+                            isRestaurantOpen = r.isOpen
+                            populateUi(
+                                name = r.name,
+                                category = restaurantCategory,
+                                rating = String.format("%.1f", r.rating),
+                                time = "${r.deliveryTimeMin}–${r.deliveryTimeMax} min",
+                                fee = if (r.deliveryFee == 0.0) "Gratis" else "$${r.deliveryFee.toInt()}",
+                                isOpen = r.isOpen,
+                                menu = emptyList()
+                            )
+                            menuAdapter = MenuAdapter(restaurantCategory) { menuItem ->
+                                showItemCustomizationSheet(menuItem)
+                            }
+                            binding.recyclerMenu.adapter = menuAdapter
+                        }
+                    }
+                }
+                launch {
+                    viewModel.menu.collect { state ->
+                        if (state is UiState.Success) {
+                            val categories = state.data.toMenuCategories()
+                            menuAdapter.submitSections(categories)
+                            setupCategoryTabs(categories.map { it.name })
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun populateUi(
+        name: String, category: String, rating: String,
+        time: String, fee: String, isOpen: Boolean, menu: List<String>
+    ) {
+        binding.viewHeroBg.setBackgroundResource(categoryBg(category))
+        binding.imgHeroFood.setImageResource(categoryIcon(category))
+        binding.textRestaurantName.text = name
+        binding.textRating.text = rating
+        binding.textTime.text = time
+        binding.textDeliveryFee.text = fee
+        supportActionBar?.title = name
+
+        if (isOpen) {
+            binding.layoutDetailStatus.setBackgroundResource(R.drawable.bg_open_badge)
+            binding.dotDetailStatus.setBackgroundColor(Color.parseColor("#2E7D32"))
+            binding.textDetailStatus.text = "Abierto"
+            binding.textDetailStatus.setTextColor(Color.parseColor("#2E7D32"))
+        } else {
+            binding.layoutDetailStatus.setBackgroundResource(R.drawable.bg_closed_badge)
+            binding.dotDetailStatus.setBackgroundColor(Color.parseColor("#9E9E9E"))
+            binding.textDetailStatus.text = "Cerrado"
+            binding.textDetailStatus.setTextColor(Color.parseColor("#6B6B6B"))
+        }
+
+        animateHeroEntrance()
+        if (menu.isNotEmpty()) setupCategoryTabs(menu)
     }
 
     private fun animateHeroEntrance() {

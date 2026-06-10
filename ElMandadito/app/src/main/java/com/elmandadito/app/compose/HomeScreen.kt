@@ -92,6 +92,7 @@ private val samplePromos = listOf(
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 @Composable
 fun HomeScreen(
+    networkRestaurants: List<Restaurant> = emptyList(),
     onRestaurantClick: (Restaurant) -> Unit = {},
     onCartClick: () -> Unit = {}
 ) {
@@ -125,9 +126,10 @@ fun HomeScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val restaurants = remember(selectedCat, query, sortBy, openOnly, refreshKey) {
-        val allRestaurants = SampleData.restaurants +
-            BusinessRepository.getAll().map { it.toRestaurant() }
+    val restaurants = remember(selectedCat, query, sortBy, openOnly, refreshKey, networkRestaurants) {
+        val localRestaurants = if (networkRestaurants.isNotEmpty()) networkRestaurants
+                               else SampleData.restaurants
+        val allRestaurants = localRestaurants + BusinessRepository.getAll().map { it.toRestaurant() }
         var base = if (selectedCat == "all") allRestaurants
                    else allRestaurants.filter { it.category == selectedCat }
         if (query.isNotBlank()) base = base.filter { r ->
@@ -175,9 +177,9 @@ fun HomeScreen(
                         restaurantName = lastOrder.restaurantName,
                         total = lastOrder.total,
                         onClick = {
-                            val restaurant = (SampleData.restaurants +
-                                BusinessRepository.getAll().map { it.toRestaurant() })
-                                .find { it.name == lastOrder.restaurantName }
+                            val all = networkRestaurants.ifEmpty { SampleData.restaurants } +
+                                BusinessRepository.getAll().map { it.toRestaurant() }
+                            val restaurant = all.find { it.name == lastOrder.restaurantName }
                             if (restaurant != null) onRestaurantClick(restaurant)
                         },
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
