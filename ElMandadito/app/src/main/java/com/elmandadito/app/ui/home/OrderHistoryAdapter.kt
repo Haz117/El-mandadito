@@ -4,7 +4,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.elmandadito.app.data.BusinessRepository
 import com.elmandadito.app.data.OrderRecord
+import com.elmandadito.app.data.SampleData
 import com.elmandadito.app.databinding.ItemOrderHistoryBinding
 
 class OrderHistoryAdapter(
@@ -22,6 +24,11 @@ class OrderHistoryAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         val o = orders[position]
         with(holder.b) {
+            val ctx = root.context
+            BusinessRepository.init(ctx)
+            val allRestaurants = SampleData.restaurants + BusinessRepository.getAll().map { it.toRestaurant() }
+            textOrderIconEmoji.text = allRestaurants.find { it.name == o.restaurantName }?.emoji ?: "🍽️"
+
             textOrderRestaurant.text = o.restaurantName
             textOrderDate.text = o.date
             textOrderTotal.text = "$${o.total}"

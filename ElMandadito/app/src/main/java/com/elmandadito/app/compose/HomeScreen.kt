@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.*
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -28,15 +29,27 @@ import androidx.compose.ui.text.style.*
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.elmandadito.app.R
 import com.elmandadito.app.data.AddressManager
+import com.elmandadito.app.data.BusinessRepository
 import com.elmandadito.app.data.CartRepository
 import com.elmandadito.app.data.FavoritesManager
+import com.elmandadito.app.data.OrderHistoryManager
 import com.elmandadito.app.data.Restaurant
 import com.elmandadito.app.data.SampleData
+import com.elmandadito.app.data.SearchHistoryManager
+import com.elmandadito.app.data.UserPrefsManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
@@ -83,23 +96,47 @@ fun HomeScreen(
     onCartClick: () -> Unit = {}
 ) {
     val ctx = LocalContext.current
+    SearchHistoryManager.init(ctx)
+    OrderHistoryManager.init(ctx)
+    UserPrefsManager.init(ctx)
     val cartItems  by CartRepository.items.observeAsState(mutableListOf())
     val cartCount  = cartItems.sumOf { it.quantity }
+    val userName   = remember { UserPrefsManager.getName().let { if (it == "Usuario") "" else it } }
+    val lastOrder  = remember { OrderHistoryManager.getOrders().firstOrNull() }
     var selectedCat by remember { mutableStateOf("all") }
     var query by remember { mutableStateOf("") }
+    var searchFocused by remember { mutableStateOf(false) }
     var sortBy by remember { mutableStateOf("default") }
     var openOnly by remember { mutableStateOf(false) }
     var currentAddress by remember { mutableStateOf(AddressManager.getSelectedLabel()) }
     var showAddressDialog by remember { mutableStateOf(false) }
     var showFilterDialog by remember { mutableStateOf(false) }
+    var showPromosDialog by remember { mutableStateOf(false) }
     val filtersActive = sortBy != "default" || openOnly
 
-    val restaurants = remember(selectedCat, query, sortBy, openOnly) {
-        var base = if (selectedCat == "all") SampleData.restaurants
-                   else SampleData.restaurants.filter { it.category == selectedCat }
+    // Refresh restaurant list when returning from other screens (e.g. after adding a business)
+    var refreshKey by remember { mutableIntStateOf(0) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) refreshKey++
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    val restaurants = remember(selectedCat, query, sortBy, openOnly, refreshKey) {
+        val allRestaurants = SampleData.restaurants +
+            BusinessRepository.getAll().map { it.toRestaurant() }
+        var base = if (selectedCat == "all") allRestaurants
+                   else allRestaurants.filter { it.category == selectedCat }
         if (query.isNotBlank()) base = base.filter { r ->
             r.name.contains(query, ignoreCase = true) ||
-            r.tags.any { t -> t.contains(query, ignoreCase = true) }
+            r.tags.any { t -> t.contains(query, ignoreCase = true) } ||
+            r.menu.flatMap { it.items }.any { item ->
+                item.name.contains(query, ignoreCase = true) ||
+                item.description.contains(query, ignoreCase = true)
+            }
         }
         if (openOnly) base = base.filter { it.isOpen }
         when (sortBy) {
@@ -121,8 +158,43 @@ fun HomeScreen(
     Box(Modifier.fillMaxSize().alpha(contentAlpha)) {
         LazyColumn(contentPadding = PaddingValues(bottom = if (cartCount > 0) 96.dp else 24.dp)) {
 
-            item { TopHeader(openCount, currentAddress, { showAddressDialog = true }, { Toast.makeText(ctx, "Sin notificaciones nuevas", Toast.LENGTH_SHORT).show() }) }
-            item { SearchRow(query, { query = it }, { showFilterDialog = true }, filtersActive, Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) }
+            item { TopHeader(openCount, currentAddress, userName, { showAddressDialog = true }, { Toast.makeText(ctx, "Sin notificaciones nuevas", Toast.LENGTH_SHORT).show() }) }
+            item {
+                SearchRow(
+                    query = query,
+                    onQueryChange = { query = it; if (it.isBlank()) searchFocused = true },
+                    onFocusChange = { searchFocused = it },
+                    onFilterClick = { showFilterDialog = true },
+                    filtersActive = filtersActive,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
+                )
+            }
+            if (lastOrder != null && query.isEmpty() && !searchFocused) {
+                item(key = "reorderBanner") {
+                    ReorderBanner(
+                        restaurantName = lastOrder.restaurantName,
+                        total = lastOrder.total,
+                        onClick = {
+                            val restaurant = (SampleData.restaurants +
+                                BusinessRepository.getAll().map { it.toRestaurant() })
+                                .find { it.name == lastOrder.restaurantName }
+                            if (restaurant != null) onRestaurantClick(restaurant)
+                        },
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                }
+            }
+            if (searchFocused && query.isEmpty()) {
+                item(key = "searchHistory") {
+                    SearchHistoryDropdown(
+                        history = SearchHistoryManager.getAll(),
+                        onSelect = { q -> query = q; searchFocused = false },
+                        onRemove = { SearchHistoryManager.remove(it) },
+                        onClear  = { SearchHistoryManager.clear() },
+                        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp)
+                    )
+                }
+            }
             item { CategoryRow(selectedCat, Modifier.padding(top = 2.dp, bottom = 4.dp)) { selectedCat = it } }
 
             item(key = "divider1") { SectionDivider() }
@@ -134,7 +206,7 @@ fun HomeScreen(
                         .animateItem(fadeInSpec = tween(350))
                         .padding(horizontal = 20.dp)
                         .padding(top = 20.dp, bottom = 12.dp),
-                    onVerTodo = { Toast.makeText(ctx, "Próximamente: todas las promociones", Toast.LENGTH_SHORT).show() }
+                    onVerTodo = { showPromosDialog = true }
                 )
             }
             item(key = "promoBanners") {
@@ -177,7 +249,11 @@ fun HomeScreen(
             items(restaurants, key = { it.id }) { r ->
                 RestaurantCard(
                     restaurant = r,
-                    onClick    = { onRestaurantClick(r) },
+                    onClick    = {
+                        if (query.isNotBlank()) SearchHistoryManager.add(query)
+                        searchFocused = false
+                        onRestaurantClick(r)
+                    },
                     modifier   = Modifier
                         .padding(horizontal = 16.dp, vertical = 7.dp)
                         .animateItem(fadeInSpec = tween(300))
@@ -227,7 +303,9 @@ fun HomeScreen(
             onDismiss = { showFilterDialog = false }
         )
     }
-}
+    if (showPromosDialog) {
+        PromosDialog(onDismiss = { showPromosDialog = false })
+    }
 }
 
 // ─── SKELETON LOADING ────────────────────────────────────────────────────────
@@ -274,7 +352,7 @@ private fun SectionDivider(modifier: Modifier = Modifier) {
 
 // ─── TOP HEADER ──────────────────────────────────────────────────────────────
 @Composable
-private fun TopHeader(openCount: Int, address: String, onAddressClick: () -> Unit, onBellClick: () -> Unit) {
+private fun TopHeader(openCount: Int, address: String, userName: String, onAddressClick: () -> Unit, onBellClick: () -> Unit) {
     // Bell shake animation
     val bellAnim = rememberInfiniteTransition(label = "bell")
     val bellRot by bellAnim.animateFloat(
@@ -329,11 +407,15 @@ private fun TopHeader(openCount: Int, address: String, onAddressClick: () -> Uni
         Text(greeting(), color = Color(0xFF757575), fontSize = 13.sp, letterSpacing = 0.2.sp)
         Spacer(Modifier.height(4.dp))
         Text(
-            "¿Qué se te antoja hoy?",
+            if (userName.isNotBlank()) "¡Hola, $userName!" else "¿Qué se te antoja hoy?",
             color = AppWhite, fontSize = 26.sp,
             fontWeight = FontWeight.ExtraBold,
             letterSpacing = (-0.5).sp, lineHeight = 32.sp
         )
+        if (userName.isNotBlank()) {
+            Spacer(Modifier.height(3.dp))
+            Text("¿Qué se te antoja hoy?", color = Color(0xFF9E9E9E), fontSize = 14.sp)
+        }
 
         if (openCount > 0) {
             Spacer(Modifier.height(14.dp))
@@ -358,7 +440,14 @@ private fun TopHeader(openCount: Int, address: String, onAddressClick: () -> Uni
 
 // ─── SEARCH ROW ──────────────────────────────────────────────────────────────
 @Composable
-fun SearchRow(query: String = "", onQueryChange: (String) -> Unit = {}, onFilterClick: () -> Unit = {}, filtersActive: Boolean = false, modifier: Modifier = Modifier) {
+fun SearchRow(
+    query: String = "",
+    onQueryChange: (String) -> Unit = {},
+    onFocusChange: (Boolean) -> Unit = {},
+    onFilterClick: () -> Unit = {},
+    filtersActive: Boolean = false,
+    modifier: Modifier = Modifier
+) {
     Row(modifier, Arrangement.spacedBy(10.dp), Alignment.CenterVertically) {
         Row(
             Modifier.weight(1f).height(50.dp)
@@ -375,7 +464,9 @@ fun SearchRow(query: String = "", onQueryChange: (String) -> Unit = {}, onFilter
                     onValueChange = onQueryChange,
                     textStyle = TextStyle(color = NearBlack, fontSize = 14.sp),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { onFocusChange(it.isFocused) }
                 )
             }
             if (query.isNotEmpty()) {
@@ -551,6 +642,19 @@ fun RestaurantCard(restaurant: Restaurant, onClick: () -> Unit, modifier: Modifi
     val initFav = remember { runCatching { FavoritesManager.isFavorite(restaurant.id) }.getOrDefault(false) }
     var isFav   by remember { mutableStateOf(initFav) }
     var pressed by remember { mutableStateOf(false) }
+
+    // Load business image from URI if available
+    val ctx = LocalContext.current
+    var imageBitmap by remember(restaurant.imageUri) { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    LaunchedEffect(restaurant.imageUri) {
+        if (restaurant.imageUri.isBlank()) return@LaunchedEffect
+        imageBitmap = withContext(Dispatchers.IO) {
+            runCatching {
+                ctx.contentResolver.openInputStream(android.net.Uri.parse(restaurant.imageUri))
+                    ?.use { stream -> android.graphics.BitmapFactory.decodeStream(stream)?.asImageBitmap() }
+            }.getOrNull()
+        }
+    }
     val sc by animateFloatAsState(
         if (pressed) 0.98f else 1f, spring(Spring.DampingRatioMediumBouncy), label = "rc"
     )
@@ -581,28 +685,55 @@ fun RestaurantCard(restaurant: Restaurant, onClick: () -> Unit, modifier: Modifi
                 Modifier.fillMaxWidth().height(168.dp)
                     .background(Brush.verticalGradient(listOf(Color(0xFF222222), ImgBg, Color(0xFF0A0A0A))))
             ) {
-                // Food emoji — gentle float
-                Text(
-                    restaurant.emoji, fontSize = 68.sp,
-                    modifier = Modifier.align(Alignment.Center).offset(y = emojiY.dp)
-                )
+                if (imageBitmap != null) {
+                    // Show business photo when available
+                    Image(
+                        bitmap = imageBitmap!!,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    // Food emoji — gentle float
+                    Text(
+                        restaurant.emoji, fontSize = 68.sp,
+                        modifier = Modifier.align(Alignment.Center).offset(y = emojiY.dp)
+                    )
+                }
 
                 // Closed overlay — dims card when restaurant is not open
                 if (!restaurant.isOpen) {
                     Box(Modifier.fillMaxSize().background(AppBlack.copy(alpha = 0.52f)))
                 }
 
-                // Promo badge (top-start)
-                if (restaurant.promo != null) {
-                    Box(
-                        Modifier.padding(12.dp).align(Alignment.TopStart)
-                            .background(AppWhite, RoundedCornerShape(8.dp))
-                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                // Promo + New badges (top-start)
+                if (restaurant.promo != null || restaurant.isNew) {
+                    Column(
+                        Modifier.padding(12.dp).align(Alignment.TopStart),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text(
-                            restaurant.promo, color = NearBlack, fontSize = 10.sp,
-                            fontWeight = FontWeight.ExtraBold, letterSpacing = 0.3.sp
-                        )
+                        if (restaurant.promo != null) {
+                            Box(
+                                Modifier.background(AppWhite, RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                            ) {
+                                Text(
+                                    restaurant.promo, color = NearBlack, fontSize = 10.sp,
+                                    fontWeight = FontWeight.ExtraBold, letterSpacing = 0.3.sp
+                                )
+                            }
+                        }
+                        if (restaurant.isNew) {
+                            Box(
+                                Modifier.background(OpenGreen, RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                            ) {
+                                Text(
+                                    "NUEVO", color = AppWhite, fontSize = 10.sp,
+                                    fontWeight = FontWeight.ExtraBold, letterSpacing = 0.5.sp
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -910,6 +1041,143 @@ private fun FilterDialog(
             }
         }
     )
+}
+
+// ─── PROMOS DIALOG ───────────────────────────────────────────────────────────
+@Composable
+private fun PromosDialog(onDismiss: () -> Unit) {
+    val promos = listOf(
+        Triple("MANDADITO20", "-20% en tu pedido", "Aplica en todos los restaurantes"),
+        Triple("BIENVENIDO",  "-15% bienvenida",   "Solo para usuarios nuevos"),
+        Triple("PROMO10",     "-10% siempre",      "Válido en cualquier pedido")
+    )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Códigos de descuento", fontWeight = FontWeight.ExtraBold, fontSize = 17.sp) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                promos.forEach { (code, discount, desc) ->
+                    Row(
+                        Modifier.fillMaxWidth()
+                            .background(LightGray, RoundedCornerShape(12.dp))
+                            .padding(12.dp),
+                        Arrangement.SpaceBetween,
+                        Alignment.CenterVertically
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(code, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp,
+                                color = NearBlack, fontFamily = FontFamily.Monospace)
+                            Text(desc, fontSize = 11.sp, color = MidGray,
+                                modifier = Modifier.padding(top = 2.dp))
+                        }
+                        Text(discount, color = OpenGreen, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
+                }
+                Text(
+                    "Aplica el código desde el carrito antes de confirmar tu pedido.",
+                    fontSize = 11.sp, color = MidGray
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Entendido", fontWeight = FontWeight.Bold, color = NearBlack)
+            }
+        },
+        shape = RoundedCornerShape(20.dp),
+        containerColor = AppWhite
+    )
+}
+
+// ─── SEARCH HISTORY DROPDOWN ─────────────────────────────────────────────────
+@Composable
+private fun SearchHistoryDropdown(
+    history: List<String>,
+    onSelect: (String) -> Unit,
+    onRemove: (String) -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (history.isEmpty()) return
+    Column(
+        modifier
+            .fillMaxWidth()
+            .background(AppWhite, RoundedCornerShape(16.dp))
+            .border(1.dp, Border, RoundedCornerShape(16.dp))
+            .padding(vertical = 6.dp)
+    ) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            Arrangement.SpaceBetween, Alignment.CenterVertically
+        ) {
+            Text("Búsquedas recientes", color = MidGray, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                "Borrar todo", color = NearBlack, fontSize = 12.sp, fontWeight = FontWeight.Medium,
+                modifier = Modifier.clickable { onClear() }
+            )
+        }
+        history.forEach { q ->
+            Row(
+                Modifier.fillMaxWidth()
+                    .clickable { onSelect(q) }
+                    .padding(horizontal = 16.dp, vertical = 11.dp),
+                Arrangement.SpaceBetween, Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Filled.History, null, tint = MidGray, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(10.dp))
+                    Text(q, color = NearBlack, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                Icon(
+                    Icons.Filled.Close, "Eliminar",
+                    tint = MidGray,
+                    modifier = Modifier.size(16.dp).clickable { onRemove(q) }
+                )
+            }
+        }
+    }
+}
+
+// ─── REORDER BANNER ──────────────────────────────────────────────────────────
+@Composable
+private fun ReorderBanner(
+    restaurantName: String,
+    total: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier
+            .fillMaxWidth()
+            .background(LightGray, RoundedCornerShape(16.dp))
+            .border(1.dp, Border, RoundedCornerShape(16.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        Arrangement.SpaceBetween, Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+            Box(
+                Modifier.size(36.dp).background(NearBlack, RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center
+            ) { Text("🔄", fontSize = 16.sp) }
+            Spacer(Modifier.width(12.dp))
+            Column {
+                Text(
+                    "Pedir de nuevo", color = NearBlack, fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    restaurantName, color = MidGray, fontSize = 12.sp,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("\$$total", color = MidGray, fontSize = 12.sp)
+            Spacer(Modifier.width(6.dp))
+            Icon(Icons.Filled.ChevronRight, null, tint = MidGray, modifier = Modifier.size(16.dp))
+        }
+    }
 }
 
 @Preview(showBackground = true, showSystemUi = true)

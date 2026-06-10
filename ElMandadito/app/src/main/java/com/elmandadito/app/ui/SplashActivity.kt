@@ -9,10 +9,8 @@ import android.os.Handler
 import android.os.Looper
 import android.view.animation.OvershootInterpolator
 import androidx.appcompat.app.AppCompatActivity
-import com.elmandadito.app.data.UserAuthManager
 import com.elmandadito.app.data.UserPrefsManager
 import com.elmandadito.app.databinding.ActivitySplashBinding
-import com.elmandadito.app.ui.auth.LoginActivity
 
 class SplashActivity : AppCompatActivity() {
 
@@ -29,12 +27,7 @@ class SplashActivity : AppCompatActivity() {
         animateLogo()
 
         handler.postDelayed({
-            val destination = if (UserAuthManager.isLoggedIn()) {
-                Intent(this, MainActivity::class.java)
-            } else {
-                Intent(this, LoginActivity::class.java)
-            }
-            startActivity(destination)
+            startActivity(Intent(this, MainActivity::class.java))
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
             finish()
         }, 2200)

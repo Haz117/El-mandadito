@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F6F6F6">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:background="#000000"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp">
+
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@drawable/ic_arrow_right"
+            android:tint="#FFFFFF"
+            android:padding="10dp"
+            android:rotation="180"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Regresar" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:text="Registrar mi negocio"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:letterSpacing="-0.01"/>
+    </LinearLayout>
+
+    <!-- Body -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="18dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="40dp">
+
+            <!-- SECCIÓN: Info -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="INFORMACIÓN DEL NEGOCIO"
+                android:textColor="#6B6B6B"
+                android:textSize="11sp"
+                android:letterSpacing="0.08"
+                android:textStyle="bold"
+                android:layout_marginBottom="14dp"/>
+
+            <!-- Nombre -->
+            <LinearLayout
+                android:id="@+id/layout_biz_name"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_input"
+                android:paddingHorizontal="16dp"
+                android:layout_marginBottom="12dp">
+                <EditText
+                    android:id="@+id/edit_biz_name"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="Nombre del negocio"
+                    android:textColorHint="#A0A0A0"
+                    android:textColor="#1A1A1A"
+                    android:textSize="15sp"
+                    android:inputType="textCapWords"
+                    android:singleLine="true"
+                    android:imeOptions="actionNext"/>
+            </LinearLayout>
+
+            <!-- Categoría label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Categoría"
+                android:textColor="#6B6B6B"
+                android:textSize="13sp"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Categoría chips -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:layout_marginBottom="14dp">
+                <LinearLayout
+                    android:id="@+id/layout_categories"
+                    android:layout_width="wrap_content"
+                    android:layout_height="44dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"/>
+            </HorizontalScrollView>
+
+            <!-- Emoji -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_input"
+                android:paddingHorizontal="16dp"
+                android:layout_marginBottom="12dp">
+                <EditText
+                    android:id="@+id/edit_biz_emoji"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="Emoji del negocio  ej: 🍕"
+                    android:textColorHint="#A0A0A0"
+                    android:textColor="#1A1A1A"
+                    android:textSize="20sp"
+                    android:singleLine="true"
+                    android:imeOptions="actionNext"/>
+            </LinearLayout>
+
+            <!-- Tags -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_input"
+                android:paddingHorizontal="16dp"
+                android:layout_marginBottom="12dp">
+                <EditText
+                    android:id="@+id/edit_biz_tags"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="Etiquetas  ej: Rápido, Casero, Económico"
+                    android:textColorHint="#A0A0A0"
+                    android:textColor="#1A1A1A"
+                    android:textSize="14sp"
+                    android:singleLine="true"
+                    android:imeOptions="actionNext"/>
+            </LinearLayout>
+
+            <!-- Promo (opcional) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_input"
+                android:paddingHorizontal="16dp"
+                android:layout_marginBottom="22dp">
+                <EditText
+                    android:id="@+id/edit_biz_promo"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="Promoción  ej: Envío GRATIS (opcional)"
+                    android:textColorHint="#A0A0A0"
+                    android:textColor="#1A1A1A"
+                    android:textSize="14sp"
+                    android:singleLine="true"
+                    android:imeOptions="actionNext"/>
+            </LinearLayout>
+
+            <!-- SECCIÓN: Imagen -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="IMAGEN DEL NEGOCIO"
+                android:textColor="#6B6B6B"
+                android:textSize="11sp"
+                android:letterSpacing="0.08"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp"/>
+
+            <FrameLayout
+                android:id="@+id/layout_image_picker"
+                android:layout_width="match_parent"
+                android:layout_height="130dp"
+                android:background="@drawable/bg_input"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginBottom="6dp">
+
+                <ImageView
+                    android:id="@+id/img_biz_preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"/>
+
+                <LinearLayout
+                    android:id="@+id/layout_pick_hint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📷"
+                        android:textSize="28sp"
+                        android:layout_marginBottom="8dp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Toca para seleccionar foto"
+                        android:textColor="#A0A0A0"
+                        android:textSize="13sp"/>
+                </LinearLayout>
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Opcional — logo o foto del lugar"
+                android:textColor="#9E9E9E"
+                android:textSize="12sp"
+                android:layout_marginBottom="22dp"/>
+
+            <!-- SECCIÓN: Logística -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LOGÍSTICA"
+                android:textColor="#6B6B6B"
+                android:textSize="11sp"
+                android:letterSpacing="0.08"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Tiempo + Costo envío -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_input"
+                    android:paddingHorizontal="14dp"
+                    android:layout_marginEnd="8dp">
+                    <EditText
+                        android:id="@+id/edit_biz_delivery_time"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:hint="Tiempo  ej: 25-35 min"
+                        android:textColorHint="#A0A0A0"
+                        android:textColor="#1A1A1A"
+                        android:textSize="13sp"
+                        android:singleLine="true"
+                        android:imeOptions="actionNext"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_input"
+                    android:paddingHorizontal="14dp">
+                    <EditText
+                        android:id="@+id/edit_biz_delivery_fee"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:hint="Envío $"
+                        android:textColorHint="#A0A0A0"
+                        android:textColor="#1A1A1A"
+                        android:textSize="13sp"
+                        android:singleLine="true"
+                        android:inputType="number"
+                        android:imeOptions="actionNext"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Mínimo + Teléfono -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_input"
+                    android:paddingHorizontal="14dp"
+                    android:layout_marginEnd="8dp">
+                    <EditText
+                        android:id="@+id/edit_biz_minimum"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:hint="Mínimo $"
+                        android:textColorHint="#A0A0A0"
+                        android:textColor="#1A1A1A"
+                        android:textSize="13sp"
+                        android:singleLine="true"
+                        android:inputType="number"
+                        android:imeOptions="actionNext"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_input"
+                    android:paddingHorizontal="14dp">
+                    <EditText
+                        android:id="@+id/edit_biz_phone"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:hint="Teléfono"
+                        android:textColorHint="#A0A0A0"
+                        android:textColor="#1A1A1A"
+                        android:textSize="13sp"
+                        android:singleLine="true"
+                        android:inputType="phone"
+                        android:imeOptions="actionDone"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Toggle abierto -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_input"
+                android:paddingHorizontal="16dp"
+                android:layout_marginBottom="22dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Negocio abierto ahora"
+                    android:textColor="#1A1A1A"
+                    android:textSize="14sp"/>
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switch_is_open"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"/>
+            </LinearLayout>
+
+            <!-- SECCIÓN: Productos -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="TUS PRODUCTOS"
+                    android:textColor="#6B6B6B"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.08"
+                    android:textStyle="bold"/>
+                <Button
+                    android:id="@+id/btn_add_product"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="+ Agregar"
+                    android:background="@drawable/bg_input"
+                    android:textColor="#1A1A1A"
+                    android:textSize="13sp"
+                    android:textAllCaps="false"
+                    android:paddingHorizontal="16dp"/>
+            </LinearLayout>
+
+            <!-- Contenedor de filas de producto (se llena en código) -->
+            <LinearLayout
+                android:id="@+id/layout_menu_items"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="22dp"/>
+
+            <!-- Error -->
+            <TextView
+                android:id="@+id/text_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#E53935"
+                android:textSize="13sp"
+                android:gravity="center"
+                android:layout_marginBottom="14dp"
+                android:visibility="gone"/>
+
+            <!-- Botón registrar -->
+            <Button
+                android:id="@+id/btn_register_business"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:background="@drawable/bg_checkout_btn"
+                android:text="Registrar negocio"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:textAllCaps="false"
+                android:letterSpacing="0.01"/>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

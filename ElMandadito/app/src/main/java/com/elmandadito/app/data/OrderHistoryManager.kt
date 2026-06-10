@@ -46,6 +46,7 @@ object OrderHistoryManager {
     }
 
     fun getOrders(): List<OrderRecord> {
+        if (!::prefs.isInitialized) return emptyList()
         val json = prefs.getString(KEY_ORDERS, "[]") ?: "[]"
         return try {
             val arr = JSONArray(json)
@@ -79,6 +80,7 @@ object OrderHistoryManager {
     }
 
     private fun saveOrders(orders: List<OrderRecord>) {
+        if (!::prefs.isInitialized) return
         val arr = JSONArray()
         orders.forEach { o ->
             arr.put(JSONObject().apply {

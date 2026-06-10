@@ -24,8 +24,11 @@ import com.elmandadito.app.data.SampleData
 import com.elmandadito.app.data.UserAuthManager
 import com.elmandadito.app.data.UserPrefsManager
 import com.elmandadito.app.databinding.BottomSheetAddressBinding
+import com.elmandadito.app.databinding.BottomSheetOrderDetailBinding
 import com.elmandadito.app.databinding.FragmentProfileBinding
 import com.elmandadito.app.ui.auth.LoginActivity
+import com.elmandadito.app.data.BusinessRepository
+import com.elmandadito.app.ui.business.MyBusinessesActivity
 import com.elmandadito.app.ui.detail.RestaurantDetailActivity
 import com.elmandadito.app.ui.home.OrderHistoryAdapter
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -69,16 +72,19 @@ class ProfileFragment : Fragment() {
         val favorites = FavoritesManager.getFavoriteIds().size
         val points = OrderHistoryManager.getLoyaltyPoints()
 
+        val spent = OrderHistoryManager.getTotalSpent()
         if (orders.size != lastOrderCount) { lastOrderCount = orders.size; animateStat(binding.statOrders, orders.size) }
         else binding.statOrders.text = orders.size.toString()
         if (favorites != lastFavCount) { lastFavCount = favorites; animateStat(binding.statFavorites, favorites) }
         else binding.statFavorites.text = favorites.toString()
         if (points != lastPoints) { lastPoints = points; animateStat(binding.statPoints, points) }
         else binding.statPoints.text = points.toString()
+        binding.statSpent.text = "$$spent"
 
         val (tier, tierMin, tierMax) = OrderHistoryManager.getLoyaltyTier(points)
         val progress = if (tierMax > tierMin) ((points - tierMin) * 100 / (tierMax - tierMin)).coerceIn(0, 100) else 100
-        binding.textLoyaltyTier.text = "Nivel $tier · $points pts"
+        val medal = when (tier) { "Platino" -> "💎"; "Oro" -> "🥇"; "Plata" -> "🥈"; else -> "🥉" }
+        binding.textLoyaltyTier.text = "$medal Nivel $tier · $points pts"
         if (progress != lastProgress) {
             lastProgress = progress
             ObjectAnimator.ofInt(binding.progressLoyalty, "progress", 0, progress).apply {
@@ -171,43 +177,103 @@ class ProfileFragment : Fragment() {
     private fun setupOrderHistory() {
         val orders = OrderHistoryManager.getOrders()
         if (orders.isNotEmpty()) {
-            binding.recyclerOrderHistory.adapter = OrderHistoryAdapter(orders.take(6)) { order ->
-                showOrderDetail(order)
-            }
+            setupHistoryFilterChips(orders)
+            binding.recyclerOrderHistory.adapter = OrderHistoryAdapter(orders.take(6)) { showOrderDetail(it) }
             binding.recyclerOrderHistory.layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         }
     }
 
-    private fun showOrderDetail(order: OrderRecord) {
-        val stars = order.ratingStars
-        val ratingText = if (stars > 0)
-            "${"★".repeat(stars)}${"☆".repeat(5 - stars)}  $stars/5"
-        else
-            "Sin calificar"
+    private fun setupHistoryFilterChips(allOrders: List<OrderRecord>) {
+        val filters = listOf("Todos", "Calificados", "Sin calificar", "Este mes")
+        val container = binding.layoutHistoryFilterChips
+        container.removeAllViews()
+        val d = resources.displayMetrics.density
 
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(order.restaurantName)
-            .setMessage(
-                "Fecha: ${order.date}\n" +
-                "Platillos: ${order.itemCount} items\n" +
-                "Total: $${order.total}\n" +
-                "Pago: ${order.paymentMethod}\n" +
-                "Calificación: $ratingText"
-            )
-            .setPositiveButton("Pedir de nuevo") { _, _ ->
-                val restaurant = SampleData.restaurants.find { it.name == order.restaurantName }
-                if (restaurant != null) {
-                    val intent = Intent(requireContext(), RestaurantDetailActivity::class.java)
-                    intent.putExtra("restaurant_id", restaurant.id)
-                    startActivity(intent)
-                    requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                } else {
-                    Snackbar.make(binding.root, "Restaurante no disponible", Snackbar.LENGTH_SHORT).show()
-                }
+        val chips = mutableListOf<android.widget.TextView>()
+        filters.forEach { label ->
+            val chip = android.widget.TextView(requireContext()).apply {
+                text = label; textSize = 12.5f
+                setPadding((14 * d).toInt(), (7 * d).toInt(), (14 * d).toInt(), (7 * d).toInt())
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { marginEnd = (8 * d).toInt() }
             }
-            .setNegativeButton("Cerrar", null)
-            .show()
+            chips.add(chip)
+            container.addView(chip)
+        }
+
+        fun applyFilter(filter: String) {
+            chips.forEachIndexed { i, chip ->
+                val sel = filters[i] == filter
+                chip.background = android.graphics.drawable.GradientDrawable().apply {
+                    shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                    cornerRadius = 20f * d
+                    setColor(if (sel) android.graphics.Color.parseColor("#1A1A1A") else android.graphics.Color.parseColor("#F6F6F6"))
+                    setStroke((1f * d).toInt(), if (sel) android.graphics.Color.parseColor("#1A1A1A") else android.graphics.Color.parseColor("#E0E0E0"))
+                }
+                chip.setTextColor(if (sel) android.graphics.Color.WHITE else android.graphics.Color.parseColor("#6B6B6B"))
+            }
+            val filtered = when (filter) {
+                "Calificados"   -> allOrders.filter { it.ratingStars > 0 }
+                "Sin calificar" -> allOrders.filter { it.ratingStars == 0 }
+                "Este mes"      -> {
+                    val month = java.text.SimpleDateFormat("MMM", java.util.Locale("es", "MX")).format(java.util.Date())
+                    allOrders.filter { it.date.contains(month, ignoreCase = true) }
+                }
+                else            -> allOrders
+            }
+            binding.recyclerOrderHistory.adapter = OrderHistoryAdapter(filtered.take(6)) { showOrderDetail(it) }
+        }
+
+        chips.forEachIndexed { i, chip -> chip.setOnClickListener { applyFilter(filters[i]) } }
+        applyFilter("Todos")
+    }
+
+    private fun showOrderDetail(order: OrderRecord) {
+        if (isDetached || activity == null) return
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(requireContext(), R.style.BottomSheetDialogTheme)
+        val b = BottomSheetOrderDetailBinding.inflate(layoutInflater)
+        dialog.setContentView(b.root)
+
+        BusinessRepository.init(requireContext())
+        val allRestaurants = SampleData.restaurants + BusinessRepository.getAll().map { it.toRestaurant() }
+        b.textOrderEmoji.text = allRestaurants.find { it.name == order.restaurantName }?.emoji ?: "🍽️"
+        b.textOrderRestaurant.text = order.restaurantName
+        b.textOrderDate.text = order.date
+        b.textOrderItems.text = order.itemCount.toString()
+        b.textOrderTotal.text = "$${order.total}"
+        b.textOrderPaymentLabel.text = order.paymentMethod
+        b.textOrderPaymentEmoji.text = when (order.paymentMethod) {
+            "Tarjeta" -> "💳"; "OXXO" -> "🏪"; else -> "💵"
+        }
+
+        val starViews = listOf(b.detailStar1, b.detailStar2, b.detailStar3, b.detailStar4, b.detailStar5)
+        val stars = order.ratingStars
+        starViews.forEachIndexed { i, iv ->
+            iv.setImageResource(if (i < stars) R.drawable.ic_star_filled else R.drawable.ic_star_outline)
+            if (i < stars) iv.setColorFilter(android.graphics.Color.parseColor("#FF9500"))
+            else iv.clearColorFilter()
+        }
+        b.textOrderRatingLabel.text = if (stars > 0) "$stars / 5 estrellas" else "Sin calificar"
+
+        b.btnOrderAgain.setOnClickListener {
+            dialog.dismiss()
+            val allRestaurants = SampleData.restaurants + BusinessRepository.getAll().map { it.toRestaurant() }
+            val restaurant = allRestaurants.find { it.name == order.restaurantName }
+            if (restaurant != null) {
+                val intent = Intent(requireContext(), RestaurantDetailActivity::class.java)
+                intent.putExtra("restaurant_id", restaurant.id)
+                startActivity(intent)
+                requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            } else {
+                Snackbar.make(binding.root, "Restaurante no disponible", Snackbar.LENGTH_SHORT).show()
+            }
+        }
+        b.btnCloseOrderDetail.setOnClickListener { dialog.dismiss() }
+
+        dialog.show()
     }
 
     private fun setupActions() {
@@ -222,6 +288,12 @@ class ProfileFragment : Fragment() {
         }
 
         binding.btnAddresses.setOnClickListener { showAddressSheet() }
+
+        binding.btnRegisterBusiness.setOnClickListener {
+            BusinessRepository.init(requireContext())
+            startActivity(Intent(requireContext(), MyBusinessesActivity::class.java))
+            requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+        }
 
         binding.btnSupport.setOnClickListener {
             val sanctionHistory = UserPrefsManager.getSanctionHistory()

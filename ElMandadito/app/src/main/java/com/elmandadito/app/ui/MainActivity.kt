@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.elmandadito.app.R
 import com.elmandadito.app.data.AddressManager
+import com.elmandadito.app.data.BusinessRepository
 import com.elmandadito.app.data.CartRepository
 import com.elmandadito.app.data.FavoritesManager
 import com.elmandadito.app.data.OrderHistoryManager
@@ -30,6 +31,7 @@ class MainActivity : AppCompatActivity() {
         AddressManager.init(this)
         UserPrefsManager.init(this)
         CartRepository.init(this)
+        BusinessRepository.init(this)
 
         setupBottomNav()
         setupBackNavigation()

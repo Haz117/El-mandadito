@@ -278,6 +278,24 @@
                         android:textAllCaps="false" />
                 </LinearLayout>
 
+                <!-- Delivery note -->
+                <EditText
+                    android:id="@+id/edit_delivery_note"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_input"
+                    android:hint="📝 Nota para el repartidor (opcional)"
+                    android:textColorHint="@color/text_secondary"
+                    android:textColor="@color/brown_dark"
+                    android:textSize="13sp"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="12dp"
+                    android:inputType="textMultiLine"
+                    android:lines="2"
+                    android:maxLines="3"
+                    android:gravity="top|start"
+                    android:layout_marginBottom="18dp" />
+
                 <!-- Totals -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="horizontal" android:layout_marginBottom="12dp">

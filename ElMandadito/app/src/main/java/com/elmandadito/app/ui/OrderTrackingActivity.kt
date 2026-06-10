@@ -2,8 +2,13 @@ package com.elmandadito.app.ui
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
 import android.view.View
@@ -13,6 +18,7 @@ import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
 import com.elmandadito.app.R
 import com.elmandadito.app.data.OrderHistoryManager
 import com.elmandadito.app.databinding.ActivityOrderTrackingBinding
@@ -27,16 +33,27 @@ class OrderTrackingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityOrderTrackingBinding
     private val handler = Handler(Looper.getMainLooper())
     private var currentStep = 0
+    private var countDownTimer: CountDownTimer? = null
+    private var orderNum = 1
+
+    private val driverNames = listOf("Carlos M.", "Luis R.", "Miguel A.", "Jorge P.", "Andrés T.")
+    private val driverRatings = listOf("4.9", "4.8", "5.0", "4.7", "4.9")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityOrderTrackingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val orderNum = intent.getIntExtra("order_number", 1)
+        orderNum = intent.getIntExtra("order_number", 1)
         binding.textOrderNumber.text = "Pedido #${orderNum.toString().padStart(5, '0')}"
 
+        val driverIdx = orderNum % driverNames.size
+        binding.textDriverName.text = driverNames[driverIdx]
+        binding.textDriverInitial.text = driverNames[driverIdx].first().uppercase()
+        binding.textDriverRating.text = driverRatings[driverIdx]
+
         binding.btnBackHome.setOnClickListener { navigateHome() }
+        binding.btnShareOrder.setOnClickListener { shareOrder() }
 
         startTracking()
         startScooterFloat()
@@ -67,6 +84,20 @@ class OrderTrackingActivity : AppCompatActivity() {
         }
     }
 
+    private fun startCountdown(fromSeconds: Long) {
+        countDownTimer?.cancel()
+        countDownTimer = object : CountDownTimer(fromSeconds * 1000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                val mins = millisUntilFinished / 1000 / 60
+                val secs = (millisUntilFinished / 1000) % 60
+                binding.textCountdown.text = "⏱  %02d:%02d".format(mins, secs)
+            }
+            override fun onFinish() {
+                binding.textCountdown.text = "⏱  00:00"
+            }
+        }.start()
+    }
+
     private fun advanceStep() {
         currentStep++
         val timeNow = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
@@ -76,6 +107,7 @@ class OrderTrackingActivity : AppCompatActivity() {
                 markStepActive(binding.step1Circle, binding.step1Num, binding.step1Icon, binding.step1Time, timeNow)
                 transitionStatus("Pedido confirmado", "Tiempo estimado: 35-45 min")
                 animateProgress(10)
+                startCountdown(40 * 60)
             }
             2 -> {
                 markStepDone(binding.step1Circle, binding.step1Num, binding.step1Icon, binding.step1Time, timeNow)
@@ -89,17 +121,41 @@ class OrderTrackingActivity : AppCompatActivity() {
                 transitionStatus("¡Tu mandadito está en camino!", "Tiempo estimado: 10-15 min")
                 animateProgress(70)
                 animateScooter()
+                showDriverCard()
             }
             4 -> {
                 markStepDone(binding.step3Circle, binding.step3Num, binding.step3Icon, binding.step3Time, timeNow)
                 markStepDone(binding.step4Circle, binding.step4Num, binding.step4Icon, binding.step4Time, timeNow)
-                transitionStatus("¡Pedido entregado!", "Buen provecho")
+                transitionStatus("¡Pedido entregado!", "Buen provecho 🎉")
                 animateProgress(100)
-                binding.btnBackHome.visibility = View.VISIBLE
-                binding.btnBackHome.startAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_in))
+                countDownTimer?.cancel()
+                binding.textCountdown.text = "✓  ¡Entregado!"
+                binding.layoutActionButtons.visibility = View.VISIBLE
+                binding.layoutActionButtons.startAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_in))
+                showDeliveryNotification()
                 handler.postDelayed({ showRatingSheet() }, 800)
             }
         }
+    }
+
+    private fun showDriverCard() {
+        binding.cardDriver.visibility = View.VISIBLE
+        binding.cardDriver.alpha = 0f
+        binding.cardDriver.translationY = 20f
+        binding.cardDriver.animate().alpha(1f).translationY(0f).setDuration(400)
+            .setInterpolator(android.view.animation.DecelerateInterpolator(2f)).start()
+    }
+
+    private fun shareOrder() {
+        val text = "📦 Pedido El Mandadito\n" +
+            "Número: #${orderNum.toString().padStart(5, '0')}\n" +
+            "Estado: ${binding.textStatusMain.text}\n" +
+            "¡Pidiendo con El Mandadito! 🛵"
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        startActivity(Intent.createChooser(intent, "Compartir pedido"))
     }
 
     private fun showRatingSheet() {
@@ -142,6 +198,25 @@ class OrderTrackingActivity : AppCompatActivity() {
         sheetBinding.btnSkipRating.setOnClickListener { dialog.dismiss() }
 
         dialog.show()
+    }
+
+    private fun showDeliveryNotification() {
+        val channelId = "order_delivered"
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId, "Pedidos", NotificationManager.IMPORTANCE_HIGH
+            ).apply { description = "Estado de tu pedido" }
+            nm.createNotificationChannel(channel)
+        }
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_scooter)
+            .setContentTitle("¡Pedido entregado! 🛵")
+            .setContentText("Tu mandadito ha llegado. ¡Buen provecho!")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+        runCatching { nm.notify(1001, notification) }
     }
 
     private fun navigateHome() {
@@ -189,5 +264,6 @@ class OrderTrackingActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacksAndMessages(null)
+        countDownTimer?.cancel()
     }
 }

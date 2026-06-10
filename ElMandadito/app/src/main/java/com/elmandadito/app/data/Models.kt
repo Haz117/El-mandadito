@@ -12,6 +12,8 @@ data class Restaurant(
     val tags: List<String>,
     val promo: String? = null,
     val isOpen: Boolean = true,
+    val imageUri: String = "",
+    val isNew: Boolean = false,
     val menu: List<MenuCategory>
 )
 

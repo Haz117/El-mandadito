@@ -52,8 +52,11 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.foundation)
     implementation(libs.compose.animation)
+    implementation(libs.compose.runtime)
     implementation(libs.compose.runtime.live)
     implementation(libs.compose.icons.ext)
     implementation(libs.activity.compose)
+    implementation(libs.lifecycle.runtime.compose)
+    implementation(libs.kotlinx.coroutines)
     debugImplementation(libs.compose.ui.tooling)
 }

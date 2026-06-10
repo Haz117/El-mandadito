@@ -12,6 +12,7 @@ cardview = "1.0.0"
 glide = "4.16.0"
 swiperefreshlayout = "1.1.0"
 compose-bom = "2024.09.03"
+coroutines = "1.8.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,9 +35,12 @@ compose-ui-tooling     = { group = "androidx.compose.ui", name = "ui-tooling" }
 compose-material3      = { group = "androidx.compose.material3", name = "material3" }
 compose-foundation     = { group = "androidx.compose.foundation", name = "foundation" }
 compose-animation      = { group = "androidx.compose.animation", name = "animation" }
+compose-runtime        = { group = "androidx.compose.runtime", name = "runtime" }
 compose-runtime-live   = { group = "androidx.compose.runtime", name = "runtime-livedata" }
 compose-icons-ext      = { group = "androidx.compose.material", name = "material-icons-extended" }
 activity-compose       = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
+lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle" }
+kotlinx-coroutines     = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -16,10 +16,13 @@
         <FrameLayout android:layout_width="40dp" android:layout_height="40dp"
             android:background="@drawable/bg_meta_row"
             android:layout_marginBottom="10dp">
-            <ImageView android:layout_width="22dp" android:layout_height="22dp"
-                android:layout_gravity="center" android:src="@drawable/ic_history"
-                android:tint="@color/primary"
-                android:contentDescription="@null" />
+            <TextView
+                android:id="@+id/text_order_icon_emoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="🍽️"
+                android:textSize="20sp" />
         </FrameLayout>
 
         <TextView android:id="@+id/text_order_restaurant"

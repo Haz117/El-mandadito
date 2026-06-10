@@ -69,8 +69,8 @@ class RegisterActivity : AppCompatActivity() {
         val views = listOf<View>(
             binding.layoutLogo, binding.textHeadline,
             binding.layoutName, binding.layoutEmail,
-            binding.layoutPassword, binding.layoutConfirmPassword,
-            binding.btnRegister
+            binding.layoutCurp, binding.layoutPassword,
+            binding.layoutConfirmPassword, binding.btnRegister
         )
         views.forEachIndexed { i, view ->
             view.alpha = 0f
@@ -87,10 +87,11 @@ class RegisterActivity : AppCompatActivity() {
     private fun attemptRegister() {
         val name = binding.editName.text?.toString()?.trim() ?: ""
         val email = binding.editEmail.text?.toString()?.trim() ?: ""
+        val curp = binding.editCurp.text?.toString()?.trim() ?: ""
         val password = binding.editPassword.text?.toString() ?: ""
         val confirm = binding.editConfirmPassword.text?.toString() ?: ""
 
-        if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
+        if (name.isEmpty() || email.isEmpty() || curp.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
             showError("Completa todos los campos")
             return
         }
@@ -99,7 +100,7 @@ class RegisterActivity : AppCompatActivity() {
             return
         }
 
-        when (val result = UserAuthManager.register(name, email, password)) {
+        when (val result = UserAuthManager.register(name, email, password, curp)) {
             UserAuthManager.RegisterResult.Success -> goToMain()
             is UserAuthManager.RegisterResult.Error -> showError(result.message)
         }

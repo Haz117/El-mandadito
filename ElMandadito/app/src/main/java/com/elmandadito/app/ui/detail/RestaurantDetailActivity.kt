@@ -2,19 +2,24 @@ package com.elmandadito.app.ui.detail
 
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.Gravity
+import android.view.Menu
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elmandadito.app.R
+import com.elmandadito.app.data.BusinessRepository
 import com.elmandadito.app.data.CartRepository
 import com.elmandadito.app.data.MenuItem
 import com.elmandadito.app.data.SampleData
@@ -30,6 +35,7 @@ class RestaurantDetailActivity : AppCompatActivity() {
     private lateinit var menuAdapter: MenuAdapter
     private var restaurantName = ""
     private var restaurantCategory = ""
+    private var isRestaurantOpen = true
     private var isFloatingCartVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,9 +44,13 @@ class RestaurantDetailActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val restaurantId = intent.getIntExtra("restaurant_id", -1)
-        val restaurant = SampleData.restaurants.find { it.id == restaurantId } ?: run { finish(); return }
+        BusinessRepository.init(this)
+        val restaurant = SampleData.restaurants.find { it.id == restaurantId }
+            ?: BusinessRepository.getAll().map { it.toRestaurant() }.find { it.id == restaurantId }
+            ?: run { finish(); return }
         restaurantName = restaurant.name
         restaurantCategory = restaurant.category
+        isRestaurantOpen = restaurant.isOpen
 
         binding.viewHeroBg.setBackgroundResource(categoryBg(restaurant.category))
         binding.imgHeroFood.setImageResource(categoryIcon(restaurant.category))
@@ -169,6 +179,10 @@ class RestaurantDetailActivity : AppCompatActivity() {
     }
 
     private fun showItemCustomizationSheet(menuItem: MenuItem) {
+        if (!isRestaurantOpen) {
+            android.widget.Toast.makeText(this, "Este negocio está cerrado por ahora", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
         val dialog = BottomSheetDialog(this, R.style.BottomSheetDialogTheme)
         val sheetBinding = BottomSheetAddItemBinding.inflate(layoutInflater)
         dialog.setContentView(sheetBinding.root)
@@ -229,22 +243,46 @@ class RestaurantDetailActivity : AppCompatActivity() {
                 .setPositiveButton("Vaciar y pedir") { _, _ ->
                     CartRepository.clearCart()
                     repeat(quantity) { CartRepository.addItem(menuItem, restaurantName, restaurantCategory) }
-                    showAddedFeedback(menuItem.name, quantity)
+                    showAddedFeedback(menuItem, quantity)
                 }
                 .setNegativeButton("Cancelar", null)
                 .show()
         } else {
             repeat(quantity) { CartRepository.addItem(menuItem, restaurantName, restaurantCategory) }
-            showAddedFeedback(menuItem.name, quantity)
+            showAddedFeedback(menuItem, quantity)
         }
     }
 
-    private fun showAddedFeedback(name: String, qty: Int) {
-        val label = if (qty == 1) "$name agregado" else "$qty × $name agregados"
+    private fun showAddedFeedback(menuItem: MenuItem, qty: Int) {
+        val label = if (qty == 1) "${menuItem.name} agregado" else "$qty × ${menuItem.name} agregados"
         binding.layoutFloatingCart.startAnimation(
             AnimationUtils.loadAnimation(this, R.anim.scale_up)
         )
+        launchEmojiFly(menuItem.emoji)
         android.widget.Toast.makeText(this, label, android.widget.Toast.LENGTH_SHORT).show()
+    }
+
+    private fun launchEmojiFly(emoji: String) {
+        val tv = android.widget.TextView(this).apply {
+            text = emoji; textSize = 30f
+            layoutParams = android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+        val root = window.decorView as android.widget.FrameLayout
+        root.addView(tv)
+        tv.post {
+            tv.x = (root.width / 2 - tv.width / 2).toFloat()
+            tv.y = root.height * 0.55f
+            tv.animate()
+                .x(root.width - 120f).y(root.height * 0.87f)
+                .scaleX(0.2f).scaleY(0.2f).alpha(0f)
+                .setDuration(500)
+                .setInterpolator(android.view.animation.AccelerateInterpolator(1.4f))
+                .withEndAction { root.removeView(tv) }
+                .start()
+        }
     }
 
     private fun showFloatingCart() {
@@ -263,6 +301,107 @@ class RestaurantDetailActivity : AppCompatActivity() {
                 .withEndAction { binding.layoutFloatingCart.visibility = View.GONE }
                 .start()
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_restaurant_detail, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        if (item.itemId == R.id.action_info) { showInfoSheet(); return true }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun showInfoSheet() {
+        val restaurant = SampleData.restaurants.find { it.name == restaurantName }
+            ?: BusinessRepository.getAll().map { it.toRestaurant() }.find { it.name == restaurantName }
+            ?: return
+
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this, R.style.BottomSheetDialogTheme)
+        val d = resources.displayMetrics.density
+
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(Color.WHITE)
+            setPadding(0, (8 * d).toInt(), 0, (24 * d).toInt())
+        }
+
+        // Handle
+        root.addView(android.view.View(this).apply {
+            setBackgroundColor(Color.parseColor("#E0E0E0"))
+            layoutParams = LinearLayout.LayoutParams((44 * d).toInt(), (4 * d).toInt())
+                .apply { gravity = Gravity.CENTER_HORIZONTAL; topMargin = (8 * d).toInt(); bottomMargin = (20 * d).toInt() }
+        })
+
+        // Title row
+        val titleRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding((20 * d).toInt(), 0, (20 * d).toInt(), (16 * d).toInt())
+        }
+        titleRow.addView(TextView(this).apply {
+            text = restaurant.emoji; textSize = 32f; gravity = Gravity.CENTER
+            layoutParams = LinearLayout.LayoutParams((52 * d).toInt(), (52 * d).toInt())
+                .apply { marginEnd = (14 * d).toInt() }
+        })
+        val nameCol = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        nameCol.addView(TextView(this).apply {
+            text = restaurant.name; textSize = 18f
+            setTextColor(Color.parseColor("#1A1A1A")); setTypeface(typeface, Typeface.BOLD)
+        })
+        nameCol.addView(TextView(this).apply {
+            text = restaurant.category.replaceFirstChar { it.uppercase() }
+            textSize = 13f; setTextColor(Color.parseColor("#6B6B6B"))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = (2 * d).toInt() }
+        })
+        titleRow.addView(nameCol)
+        root.addView(titleRow)
+
+        // Divider
+        root.addView(android.view.View(this).apply {
+            setBackgroundColor(Color.parseColor("#F0F0F0"))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, (1f * d).toInt()
+            ).apply { bottomMargin = (16 * d).toInt() }
+        })
+
+        // Info rows
+        fun infoRow(icon: String, label: String, value: String) {
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding((20 * d).toInt(), (10 * d).toInt(), (20 * d).toInt(), (10 * d).toInt())
+            }
+            row.addView(TextView(this).apply {
+                text = icon; textSize = 18f
+                layoutParams = LinearLayout.LayoutParams((32 * d).toInt(), LinearLayout.LayoutParams.WRAP_CONTENT)
+                    .apply { marginEnd = (12 * d).toInt() }
+            })
+            row.addView(TextView(this).apply {
+                text = label; textSize = 13f; setTextColor(Color.parseColor("#6B6B6B"))
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            })
+            row.addView(TextView(this).apply {
+                text = value; textSize = 13f
+                setTextColor(Color.parseColor("#1A1A1A")); setTypeface(typeface, Typeface.BOLD)
+            })
+            root.addView(row)
+        }
+
+        infoRow("⭐", "Calificación", "${restaurant.rating} / 5.0")
+        infoRow("🕐", "Tiempo de entrega", restaurant.deliveryTime)
+        infoRow("🛵", "Costo de envío", if (restaurant.deliveryFee == 0) "Gratis" else "\$${restaurant.deliveryFee}")
+        infoRow("🧾", "Pedido mínimo", "\$${restaurant.minimumOrder}")
+        infoRow("🔵", "Estado", if (restaurant.isOpen) "Abierto ahora" else "Cerrado")
+
+        dialog.setContentView(root)
+        dialog.show()
     }
 
     private fun categoryBg(cat: String) = when (cat) {

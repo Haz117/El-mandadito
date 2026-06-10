@@ -21,16 +21,25 @@ class MenuAdapter(
 
     fun submitSections(categories: List<MenuCategory>) {
         allSections = categories
-        rebuildRows(categories)
+        rebuildRows(withPopular(categories))
     }
 
     fun filter(query: String) {
-        if (query.isBlank()) { rebuildRows(allSections); return }
+        if (query.isBlank()) { rebuildRows(withPopular(allSections)); return }
         val filtered = allSections.mapNotNull { cat ->
-            val matches = cat.items.filter { it.name.contains(query, ignoreCase = true) }
+            val matches = cat.items.filter {
+                it.name.contains(query, ignoreCase = true) ||
+                it.description.contains(query, ignoreCase = true)
+            }
             if (matches.isNotEmpty()) cat.copy(items = matches) else null
         }
         rebuildRows(filtered)
+    }
+
+    private fun withPopular(sections: List<MenuCategory>): List<MenuCategory> {
+        val popular = sections.flatMap { it.items }.filter { it.isPopular }
+        return if (popular.isNotEmpty()) listOf(MenuCategory("⭐ Más pedidos", popular)) + sections
+        else sections
     }
 
     fun isEmpty() = rows.isEmpty()

@@ -20,7 +20,8 @@
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="@color/on_primary"
             app:titleTextColor="@color/on_primary"
-            app:titleTextAppearance="@style/TextAppearance.Toolbar" />
+            app:titleTextAppearance="@style/TextAppearance.Toolbar"
+            app:menu="@menu/menu_restaurant_detail" />
 
         <androidx.core.widget.NestedScrollView
             android:id="@+id/nested_scroll"

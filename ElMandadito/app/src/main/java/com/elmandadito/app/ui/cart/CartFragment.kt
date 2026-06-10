@@ -197,6 +197,73 @@ class CartFragment : Fragment() {
         sheetBinding.textPaymentTotal.text = "$${CartRepository.total()}"
         sheetBinding.textDeliveryAddress.text = AddressManager.getSelectedLabel()
 
+        // Populate items breakdown
+        val d = resources.displayMetrics.density
+        sheetBinding.layoutOrderItemsBreakdown.removeAllViews()
+        items.forEach { cartItem ->
+            val row = android.widget.LinearLayout(requireContext()).apply {
+                orientation = android.widget.LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setPadding(0, (6 * d).toInt(), 0, (6 * d).toInt())
+            }
+            row.addView(android.widget.TextView(requireContext()).apply {
+                text = "${cartItem.menuItem.emoji} ${cartItem.menuItem.name}"
+                textSize = 13f
+                setTextColor(Color.parseColor("#1A1A1A"))
+                layoutParams = android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            })
+            row.addView(android.widget.TextView(requireContext()).apply {
+                text = "×${cartItem.quantity}"
+                textSize = 12f
+                setTextColor(Color.parseColor("#9E9E9E"))
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { marginStart = (8 * d).toInt(); marginEnd = (12 * d).toInt() }
+            })
+            row.addView(android.widget.TextView(requireContext()).apply {
+                text = "$${cartItem.totalPrice}"
+                textSize = 13f
+                setTextColor(Color.parseColor("#1A1A1A"))
+                typeface = android.graphics.Typeface.DEFAULT_BOLD
+            })
+            sheetBinding.layoutOrderItemsBreakdown.addView(row)
+        }
+        // Subtotal / delivery / total summary
+        val divider = android.view.View(requireContext()).apply {
+            setBackgroundColor(Color.parseColor("#F0F0F0"))
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT, (1 * d).toInt()
+            ).apply { topMargin = (8 * d).toInt(); bottomMargin = (8 * d).toInt() }
+        }
+        sheetBinding.layoutOrderItemsBreakdown.addView(divider)
+        fun summaryRow(label: String, value: String, bold: Boolean = false) {
+            val row2 = android.widget.LinearLayout(requireContext()).apply {
+                orientation = android.widget.LinearLayout.HORIZONTAL
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { bottomMargin = (4 * d).toInt() }
+            }
+            row2.addView(android.widget.TextView(requireContext()).apply {
+                text = label; textSize = 12f
+                setTextColor(Color.parseColor("#6B6B6B"))
+                layoutParams = android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            })
+            row2.addView(android.widget.TextView(requireContext()).apply {
+                text = value; textSize = 12f
+                setTextColor(if (bold) Color.parseColor("#1A1A1A") else Color.parseColor("#6B6B6B"))
+                if (bold) typeface = android.graphics.Typeface.DEFAULT_BOLD
+            })
+            sheetBinding.layoutOrderItemsBreakdown.addView(row2)
+        }
+        summaryRow("Subtotal", "$${CartRepository.subtotal()}")
+        val fee = CartRepository.deliveryFee()
+        summaryRow("Envío", if (fee == 0) "Gratis" else "$${fee}")
+        val disc = CartRepository.discountAmount()
+        if (disc > 0) summaryRow("Descuento", "-$${disc}")
+        summaryRow("Total", "$${CartRepository.total()}", bold = true)
+
         fun selectOption(option: String) {
             selectedPayment = option
             sheetBinding.checkCash.visibility = if (option == "cash") View.VISIBLE else View.GONE
@@ -227,6 +294,10 @@ class CartFragment : Fragment() {
         val itemCount = CartRepository.itemCount()
         val paymentLabel = when (selectedPayment) {
             "card" -> "Tarjeta"; "oxxo" -> "OXXO"; else -> "Efectivo"
+        }
+        val note = binding.editDeliveryNote.text?.toString()?.trim() ?: ""
+        if (note.isNotEmpty()) {
+            android.widget.Toast.makeText(requireContext(), "📝 Nota registrada", android.widget.Toast.LENGTH_SHORT).show()
         }
 
         OrderHistoryManager.saveOrder(restaurantName, total, itemCount, paymentLabel)

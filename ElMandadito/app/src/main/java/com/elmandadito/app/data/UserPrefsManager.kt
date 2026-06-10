@@ -14,6 +14,7 @@ object UserPrefsManager {
     private const val KEY_SANCTION_COUNT = "sanction_count"
     private const val KEY_SANCTION_HISTORY = "sanction_history"
     private const val KEY_IS_BLOCKED = "is_blocked"
+    private const val KEY_CURP = "user_curp"
 
     private lateinit var prefs: SharedPreferences
 
@@ -41,6 +42,9 @@ object UserPrefsManager {
 
     fun isBlocked(): Boolean = prefs.getBoolean(KEY_IS_BLOCKED, false)
     fun setBlocked(value: Boolean) = prefs.edit().putBoolean(KEY_IS_BLOCKED, value).apply()
+
+    fun getCurp(): String = prefs.getString(KEY_CURP, "") ?: ""
+    fun setCurp(curp: String) = prefs.edit().putString(KEY_CURP, curp).apply()
 
     fun hasAccount(): Boolean = getEmail().isNotEmpty() && getPasswordHash().isNotEmpty()
 

@@ -33,6 +33,7 @@ object FavoritesManager {
     }
 
     fun getFavoriteIds(): Set<String> {
+        if (!::prefs.isInitialized) return emptySet()
         return prefs.getStringSet(KEY_FAVORITES, emptySet()) ?: emptySet()
     }
 

@@ -106,6 +106,27 @@
 
     </LinearLayout>
 
+    <!-- Items breakdown label -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="8dp"
+        android:text="RESUMEN DEL PEDIDO"
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.06" />
+
+    <!-- Items breakdown (populated programmatically) -->
+    <LinearLayout
+        android:id="@+id/layout_order_items_breakdown"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="16dp" />
+
     <!-- Payment options label -->
     <TextView
         android:layout_width="wrap_content"
