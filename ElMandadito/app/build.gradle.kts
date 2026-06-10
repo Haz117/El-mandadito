@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -73,4 +74,11 @@ dependencies {
 
     // DataStore
     implementation(libs.datastore.preferences)
+
+    // Coil — async image loading (local URIs + HTTP URLs)
+    implementation(libs.coil.compose)
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 }

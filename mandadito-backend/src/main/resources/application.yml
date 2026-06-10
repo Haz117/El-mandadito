@@ -50,3 +50,7 @@ logging:
   level:
     com.mandadito: DEBUG
     org.springframework.security: INFO
+
+firebase:
+  credentials:
+    path: ${FIREBASE_CREDENTIALS_PATH:}

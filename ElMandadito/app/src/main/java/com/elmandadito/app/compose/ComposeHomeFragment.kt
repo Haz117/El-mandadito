@@ -43,6 +43,8 @@ class ComposeHomeFragment : Fragment() {
             MaterialTheme {
                 HomeScreen(
                     networkRestaurants = networkRestaurants,
+                    isRefreshing = restaurantsState is UiState.Loading,
+                    onRefresh = { homeViewModel.loadRestaurants() },
                     onRestaurantClick = { restaurant -> navigateToRestaurant(restaurant) },
                     onCartClick = { (activity as? MainActivity)?.selectCartTab() }
                 )

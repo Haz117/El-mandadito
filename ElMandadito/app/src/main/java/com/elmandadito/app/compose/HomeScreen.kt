@@ -31,12 +31,14 @@ import androidx.compose.ui.unit.*
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import coil.compose.AsyncImage
 import com.elmandadito.app.R
 import com.elmandadito.app.data.AddressManager
 import com.elmandadito.app.data.BusinessRepository
@@ -47,9 +49,7 @@ import com.elmandadito.app.data.Restaurant
 import com.elmandadito.app.data.SampleData
 import com.elmandadito.app.data.SearchHistoryManager
 import com.elmandadito.app.data.UserPrefsManager
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
@@ -90,9 +90,12 @@ private val samplePromos = listOf(
 )
 
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     networkRestaurants: List<Restaurant> = emptyList(),
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
     onRestaurantClick: (Restaurant) -> Unit = {},
     onCartClick: () -> Unit = {}
 ) {
@@ -156,6 +159,11 @@ fun HomeScreen(
     val contentAlpha by animateFloatAsState(if (loaded) 1f else 0f, tween(400), label = "ca")
     val skeletonAlpha by animateFloatAsState(if (loaded) 0f else 1f, tween(280), label = "ska")
 
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        modifier = Modifier.fillMaxSize()
+    ) {
     Box(Modifier.fillMaxSize().background(AppWhite)) {
     Box(Modifier.fillMaxSize().alpha(contentAlpha)) {
         LazyColumn(contentPadding = PaddingValues(bottom = if (cartCount > 0) 96.dp else 24.dp)) {
@@ -284,6 +292,7 @@ fun HomeScreen(
             }
         }
     }
+    } // PullToRefreshBox
 
     if (showAddressDialog) {
         AddressDialog(
@@ -645,18 +654,6 @@ fun RestaurantCard(restaurant: Restaurant, onClick: () -> Unit, modifier: Modifi
     var isFav   by remember { mutableStateOf(initFav) }
     var pressed by remember { mutableStateOf(false) }
 
-    // Load business image from URI if available
-    val ctx = LocalContext.current
-    var imageBitmap by remember(restaurant.imageUri) { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
-    LaunchedEffect(restaurant.imageUri) {
-        if (restaurant.imageUri.isBlank()) return@LaunchedEffect
-        imageBitmap = withContext(Dispatchers.IO) {
-            runCatching {
-                ctx.contentResolver.openInputStream(android.net.Uri.parse(restaurant.imageUri))
-                    ?.use { stream -> android.graphics.BitmapFactory.decodeStream(stream)?.asImageBitmap() }
-            }.getOrNull()
-        }
-    }
     val sc by animateFloatAsState(
         if (pressed) 0.98f else 1f, spring(Spring.DampingRatioMediumBouncy), label = "rc"
     )
@@ -687,16 +684,14 @@ fun RestaurantCard(restaurant: Restaurant, onClick: () -> Unit, modifier: Modifi
                 Modifier.fillMaxWidth().height(168.dp)
                     .background(Brush.verticalGradient(listOf(Color(0xFF222222), ImgBg, Color(0xFF0A0A0A))))
             ) {
-                if (imageBitmap != null) {
-                    // Show business photo when available
-                    Image(
-                        bitmap = imageBitmap!!,
+                if (restaurant.imageUri.isNotBlank()) {
+                    AsyncImage(
+                        model = restaurant.imageUri,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    // Food emoji — gentle float
                     Text(
                         restaurant.emoji, fontSize = 68.sp,
                         modifier = Modifier.align(Alignment.Center).offset(y = emojiY.dp)

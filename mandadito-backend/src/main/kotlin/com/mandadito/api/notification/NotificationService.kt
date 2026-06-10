@@ -1,5 +1,9 @@
 package com.mandadito.api.notification
 
+import com.google.firebase.FirebaseApp
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.MulticastMessage
+import com.google.firebase.messaging.Notification
 import com.mandadito.api.notification.dto.RegisterTokenRequest
 import com.mandadito.api.user.UserService
 import org.slf4j.LoggerFactory
@@ -55,8 +59,21 @@ class NotificationService(
             else                     -> "Tu pedido actualizó su estado a $status"
         }
 
-        // TODO: integrate with Firebase Admin SDK
-        // FirebaseMessaging.getInstance().sendEachForMulticast(...)
-        log.info("NOTIFICATION → userId=$userId tokens=${tokens.size} title='$title' body='$body'")
+        try {
+            if (FirebaseApp.getApps().isEmpty()) {
+                log.info("NOTIFICATION (no Firebase) → userId=$userId tokens=${tokens.size} title='$title'")
+                return
+            }
+            val message = MulticastMessage.builder()
+                .setNotification(Notification.builder().setTitle(title).setBody(body).build())
+                .addAllTokens(tokens)
+                .putData("orderId", orderId.toString())
+                .putData("status", status)
+                .build()
+            val response = FirebaseMessaging.getInstance().sendEachForMulticast(message)
+            log.info("FCM sent → ${response.successCount} ok, ${response.failureCount} failed")
+        } catch (e: Exception) {
+            log.error("FCM error: ${e.message}")
+        }
     }
 }

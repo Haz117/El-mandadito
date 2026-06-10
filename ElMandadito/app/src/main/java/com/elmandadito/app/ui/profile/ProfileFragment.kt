@@ -4,13 +4,17 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -18,6 +22,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import com.elmandadito.app.R
@@ -47,6 +52,7 @@ class ProfileFragment : Fragment() {
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
     private val viewModel: ProfileViewModel by viewModels()
+    private val reviewViewModel: ReviewViewModel by viewModels()
 
     private var lastOrderCount = -1
     private var lastFavCount = -1
@@ -202,10 +208,72 @@ class ProfileFragment : Fragment() {
         val orders = OrderHistoryManager.getOrders()
         if (orders.isNotEmpty()) {
             setupHistoryFilterChips(orders)
-            binding.recyclerOrderHistory.adapter = OrderHistoryAdapter(orders.take(6)) { showOrderDetail(it) }
+            binding.recyclerOrderHistory.adapter = OrderHistoryAdapter(
+                orders.take(6),
+                onTap  = { showOrderDetail(it) },
+                onRate = { showRatingDialog(it) }
+            )
             binding.recyclerOrderHistory.layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         }
+    }
+
+    private fun showRatingDialog(order: OrderRecord) {
+        if (isDetached || activity == null) return
+        val d = resources.displayMetrics.density
+        var selectedStars = 0
+
+        val container = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            setPadding(0, (16 * d).toInt(), 0, (8 * d).toInt())
+        }
+
+        val starsRow = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+        }
+
+        val starViews = mutableListOf<ImageView>()
+        repeat(5) { i ->
+            val star = ImageView(requireContext()).apply {
+                setImageResource(R.drawable.ic_star_outline)
+                setColorFilter(Color.parseColor("#CCCCCC"))
+                layoutParams = LinearLayout.LayoutParams((44 * d).toInt(), (44 * d).toInt()).apply {
+                    marginStart = (4 * d).toInt()
+                    marginEnd   = (4 * d).toInt()
+                }
+                setOnClickListener {
+                    selectedStars = i + 1
+                    starViews.forEachIndexed { idx, iv ->
+                        iv.setImageResource(if (idx < selectedStars) R.drawable.ic_star_filled else R.drawable.ic_star_outline)
+                        iv.setColorFilter(if (idx < selectedStars) Color.parseColor("#FF9500") else Color.parseColor("#CCCCCC"))
+                    }
+                    starViews[i].animate().scaleX(1.3f).scaleY(1.3f).setDuration(80)
+                        .withEndAction { starViews[i].animate().scaleX(1f).scaleY(1f).setDuration(120).start() }
+                        .start()
+                }
+            }
+            starViews.add(star)
+            starsRow.addView(star)
+        }
+        container.addView(starsRow)
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("¿Cómo estuvo tu pedido?")
+            .setMessage(order.restaurantName)
+            .setView(container)
+            .setPositiveButton("Enviar calificación") { _, _ ->
+                if (selectedStars > 0) {
+                    OrderHistoryManager.updateLatestOrderRating(selectedStars)
+                    reviewViewModel.submitReview(order.networkOrderId, selectedStars, null)
+                    setupOrderHistory()
+                    refreshStats()
+                    Snackbar.make(binding.root, "¡Gracias por tu calificación! ${"★".repeat(selectedStars)}", Snackbar.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Ahora no", null)
+            .show()
     }
 
     private fun setupHistoryFilterChips(allOrders: List<OrderRecord>) {

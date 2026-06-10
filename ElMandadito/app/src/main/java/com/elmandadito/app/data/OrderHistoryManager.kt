@@ -14,7 +14,8 @@ data class OrderRecord(
     val itemCount: Int,
     val date: String,
     val paymentMethod: String,
-    val ratingStars: Int = 0
+    val ratingStars: Int = 0,
+    val networkOrderId: Long = 0L   // backend order ID; 0 = local-only order
 )
 
 object OrderHistoryManager {
@@ -29,9 +30,9 @@ object OrderHistoryManager {
         prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
-    fun saveOrder(restaurantName: String, total: Int, itemCount: Int, paymentMethod: String) {
+    fun saveOrder(restaurantName: String, total: Int, itemCount: Int, paymentMethod: String, networkOrderId: Long = 0L) {
         val dateStr = SimpleDateFormat("dd MMM", Locale("es", "MX")).format(Date())
-        val newOrder = OrderRecord(restaurantName, total, itemCount, dateStr, paymentMethod)
+        val newOrder = OrderRecord(restaurantName, total, itemCount, dateStr, paymentMethod, networkOrderId = networkOrderId)
         val orders = getOrders().toMutableList()
         orders.add(0, newOrder)
         if (orders.size > MAX_ORDERS) orders.removeAt(orders.lastIndex)
@@ -58,7 +59,8 @@ object OrderHistoryManager {
                     itemCount = obj.getInt("items"),
                     date = obj.getString("date"),
                     paymentMethod = obj.optString("payment", "Efectivo"),
-                    ratingStars = obj.optInt("rating", 0)
+                    ratingStars = obj.optInt("rating", 0),
+                    networkOrderId = obj.optLong("networkOrderId", 0L)
                 )
             }
         } catch (e: Exception) {
@@ -90,6 +92,7 @@ object OrderHistoryManager {
                 put("date", o.date)
                 put("payment", o.paymentMethod)
                 put("rating", o.ratingStars)
+                put("networkOrderId", o.networkOrderId)
             })
         }
         prefs.edit().putString(KEY_ORDERS, arr.toString()).apply()

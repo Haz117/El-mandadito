@@ -11,7 +11,8 @@ import com.elmandadito.app.databinding.ItemOrderHistoryBinding
 
 class OrderHistoryAdapter(
     private val orders: List<OrderRecord>,
-    private val onTap: ((OrderRecord) -> Unit)? = null
+    private val onTap: ((OrderRecord) -> Unit)? = null,
+    private val onRate: ((OrderRecord) -> Unit)? = null
 ) : RecyclerView.Adapter<OrderHistoryAdapter.VH>() {
 
     inner class VH(val b: ItemOrderHistoryBinding) : RecyclerView.ViewHolder(b.root)
@@ -38,6 +39,11 @@ class OrderHistoryAdapter(
             if (o.ratingStars > 0) {
                 textOrderRating.visibility = View.VISIBLE
                 textOrderRating.text = "★".repeat(o.ratingStars) + "☆".repeat(5 - o.ratingStars)
+                textOrderRating.setOnClickListener(null)
+            } else if (onRate != null) {
+                textOrderRating.visibility = View.VISIBLE
+                textOrderRating.text = "Calificar ☆"
+                textOrderRating.setOnClickListener { onRate.invoke(o) }
             } else {
                 textOrderRating.visibility = View.GONE
             }
