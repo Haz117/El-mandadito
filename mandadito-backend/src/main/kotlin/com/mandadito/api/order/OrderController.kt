@@ -60,3 +60,18 @@ class OrderController(private val orderService: OrderService) {
     ): ResponseEntity<ApiResponse<OrderResponse>> =
         ResponseEntity.ok(ApiResponse.ok(orderService.assignDriver(id, driverId)))
 }
+
+@RestController
+@RequestMapping("/api/businesses")
+@Tag(name = "Orders", description = "Gestión de pedidos")
+@SecurityRequirement(name = "bearerAuth")
+class BusinessOrderController(private val orderService: OrderService) {
+
+    @GetMapping("/{businessId}/orders")
+    @PreAuthorize("hasAnyRole('BUSINESS_OWNER', 'ADMIN')")
+    @Operation(summary = "Pedidos de un restaurante del negocio")
+    fun getRestaurantOrders(
+        @PathVariable businessId: Long
+    ): ResponseEntity<ApiResponse<List<OrderResponse>>> =
+        ResponseEntity.ok(ApiResponse.ok(orderService.getRestaurantOrders(businessId)))
+}
