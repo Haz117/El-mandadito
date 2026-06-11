@@ -120,7 +120,7 @@ class MainActivity : AppCompatActivity() {
 
     fun switchFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
-            .setCustomAnimations(R.anim.fade_in, android.R.anim.fade_out)
+            .setCustomAnimations(R.anim.fragment_enter, R.anim.fragment_exit)
             .replace(R.id.fragment_container, fragment)
             .commit()
     }

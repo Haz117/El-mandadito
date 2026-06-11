@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.ElMandadito" parent="Theme.Material3.Light.NoActionBar">
+    <style name="Theme.ElMandadito" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Brand colors -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_dark</item>
@@ -12,8 +12,10 @@
         <!-- Typography — medium weight for a premium feel -->
         <item name="android:fontFamily">sans-serif</item>
         <!-- Status bar -->
-        <item name="android:statusBarColor">@color/primary</item>
+        <item name="android:statusBarColor">@color/status_bar_color</item>
         <item name="android:windowLightStatusBar">false</item>
+        <!-- Custom alert dialog -->
+        <item name="materialAlertDialogTheme">@style/AlertDialogTheme.ElMandadito</item>
         <!-- Shape system -->
         <item name="shapeAppearanceSmallComponent">@style/Shape.ElMandadito.Small</item>
         <item name="shapeAppearanceMediumComponent">@style/Shape.ElMandadito.Medium</item>
@@ -80,8 +82,31 @@
         <item name="android:letterSpacing">0.04</item>
     </style>
 
+    <!-- Custom alert dialog — rounded, on-brand -->
+    <style name="AlertDialogTheme.ElMandadito" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="shapeAppearanceOverlay">@style/ShapeOverlay.ElMandadito.Dialog</item>
+        <item name="android:background">@color/surface</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="android:textColorPrimary">@color/brown_dark</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Button.ElMandadito.Dialog.Positive</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Button.ElMandadito.Dialog.Negative</item>
+    </style>
+    <style name="ShapeOverlay.ElMandadito.Dialog" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">20dp</item>
+    </style>
+    <style name="Button.ElMandadito.Dialog.Positive" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="Button.ElMandadito.Dialog.Negative" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
     <!-- Bottom sheet -->
-    <style name="BottomSheetDialogTheme" parent="Theme.Material3.Light.BottomSheetDialog">
+    <style name="BottomSheetDialogTheme" parent="Theme.Material3.DayNight.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/BottomSheetStyle</item>
     </style>
     <style name="BottomSheetStyle" parent="Widget.Material3.BottomSheet.Modal">

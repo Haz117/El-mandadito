@@ -16,7 +16,7 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AnimationUtils
 import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
-import android.widget.Toast
+import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import com.elmandadito.app.R
@@ -187,12 +187,18 @@ class OrderTrackingActivity : AppCompatActivity() {
 
         sheetBinding.btnSubmitRating.setOnClickListener {
             if (selectedRating == 0) {
-                Toast.makeText(this, "Por favor selecciona una calificación", Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "Por favor selecciona una calificación", Snackbar.LENGTH_SHORT)
+                    .setBackgroundTint(android.graphics.Color.parseColor("#1A1A1A"))
+                    .setTextColor(android.graphics.Color.WHITE)
+                    .show()
                 return@setOnClickListener
             }
             OrderHistoryManager.updateLatestOrderRating(selectedRating)
             dialog.dismiss()
-            Toast.makeText(this, "¡Gracias por tu calificación!", Toast.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, "¡Gracias por tu calificación!", Snackbar.LENGTH_SHORT)
+                .setBackgroundTint(android.graphics.Color.parseColor("#1A1A1A"))
+                .setTextColor(android.graphics.Color.WHITE)
+                .show()
         }
 
         sheetBinding.btnSkipRating.setOnClickListener { dialog.dismiss() }

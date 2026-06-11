@@ -11,7 +11,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -105,10 +104,16 @@ class CartFragment : Fragment() {
         binding.btnApplyPromo.setOnClickListener {
             val code = binding.editPromoCode.text?.toString() ?: ""
             if (CartRepository.applyPromo(code)) {
-                Toast.makeText(requireContext(), "Código aplicado exitosamente", Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "Código aplicado exitosamente", Snackbar.LENGTH_SHORT)
+                    .setBackgroundTint(android.graphics.Color.parseColor("#1A1A1A"))
+                    .setTextColor(android.graphics.Color.WHITE)
+                    .show()
                 binding.editPromoCode.clearFocus()
             } else {
-                Toast.makeText(requireContext(), "Código inválido. Prueba: MANDADITO20", Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "Código inválido. Prueba: MANDADITO20", Snackbar.LENGTH_SHORT)
+                    .setBackgroundTint(android.graphics.Color.parseColor("#C62828"))
+                    .setTextColor(android.graphics.Color.WHITE)
+                    .show()
             }
         }
 
@@ -297,7 +302,10 @@ class CartFragment : Fragment() {
         }
         val note = binding.editDeliveryNote.text?.toString()?.trim() ?: ""
         if (note.isNotEmpty()) {
-            android.widget.Toast.makeText(requireContext(), "📝 Nota registrada", android.widget.Toast.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, "Nota registrada", Snackbar.LENGTH_SHORT)
+                .setBackgroundTint(android.graphics.Color.parseColor("#1A1A1A"))
+                .setTextColor(android.graphics.Color.WHITE)
+                .show()
         }
 
         OrderHistoryManager.saveOrder(restaurantName, total, itemCount, paymentLabel)

@@ -28,4 +28,7 @@
 
     <!-- Card stroke -->
     <color name="card_stroke">#EBEBEB</color>
+
+    <!-- Status bar (light = black, night overridden) -->
+    <color name="status_bar_color">#000000</color>
 </resources>

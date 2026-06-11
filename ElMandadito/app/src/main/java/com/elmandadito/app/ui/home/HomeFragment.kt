@@ -1,13 +1,16 @@
 package com.elmandadito.app.ui.home
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elmandadito.app.R
@@ -22,6 +25,7 @@ import com.elmandadito.app.ui.MainActivity
 import com.elmandadito.app.ui.ScrollableToTop
 import com.elmandadito.app.ui.detail.RestaurantDetailActivity
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.snackbar.Snackbar
 import java.util.Calendar
 
 class HomeFragment : Fragment(), ScrollableToTop {
@@ -37,6 +41,9 @@ class HomeFragment : Fragment(), ScrollableToTop {
     private var sortBy = SortBy.DEFAULT
     private var freeDeliveryOnly = false
     private var openOnly = false
+    private var minRating = 0.0
+    private var maxDeliveryMin = 999
+    private var skeletonAnimator: ObjectAnimator? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -55,7 +62,7 @@ class HomeFragment : Fragment(), ScrollableToTop {
         setupSortFilter()
         setupPullToRefresh()
         setupHeaderCart()
-        applyFilters()
+        showSkeletonThenLoad()
     }
 
     override fun scrollToTop() {
@@ -85,6 +92,29 @@ class HomeFragment : Fragment(), ScrollableToTop {
         }
     }
 
+    private fun showSkeletonThenLoad() {
+        binding.layoutSkeleton.visibility = View.VISIBLE
+        binding.recyclerRestaurants.visibility = View.GONE
+        skeletonAnimator = ObjectAnimator.ofFloat(binding.layoutSkeleton, "alpha", 0.4f, 1f).apply {
+            duration = 700
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            start()
+        }
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (_binding == null) return@postDelayed
+            skeletonAnimator?.cancel()
+            binding.layoutSkeleton.animate().alpha(0f).setDuration(200).withEndAction {
+                if (_binding == null) return@withEndAction
+                binding.layoutSkeleton.visibility = View.GONE
+                binding.recyclerRestaurants.alpha = 0f
+                binding.recyclerRestaurants.visibility = View.VISIBLE
+                binding.recyclerRestaurants.animate().alpha(1f).setDuration(300).start()
+                applyFilters()
+            }.start()
+        }, 700)
+    }
+
     private fun setupGreeting() {
         val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         val greeting = when {
@@ -106,7 +136,10 @@ class HomeFragment : Fragment(), ScrollableToTop {
         )
         val featuredAdapter = FeaturedAdapter(deals) { code ->
             CartRepository.applyPromo(code)
-            Toast.makeText(requireContext(), "Código $code aplicado al carrito", Toast.LENGTH_SHORT).show()
+            Snackbar.make(binding.root, "Código $code aplicado al carrito", Snackbar.LENGTH_SHORT)
+                .setBackgroundTint(android.graphics.Color.parseColor("#1A1A1A"))
+                .setTextColor(android.graphics.Color.WHITE)
+                .show()
         }
         binding.recyclerFeatured.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -167,10 +200,23 @@ class HomeFragment : Fragment(), ScrollableToTop {
         sheetBinding.switchFreeDelivery.isChecked = freeDeliveryOnly
         sheetBinding.switchOpenOnly.isChecked = openOnly
 
+        when (minRating) {
+            4.5  -> sheetBinding.chipRating45.isChecked = true
+            4.0  -> sheetBinding.chipRating40.isChecked = true
+            else -> sheetBinding.chipRatingAll.isChecked = true
+        }
+        when (maxDeliveryMin) {
+            30   -> sheetBinding.chipTime30.isChecked = true
+            45   -> sheetBinding.chipTime45.isChecked = true
+            else -> sheetBinding.chipTimeAny.isChecked = true
+        }
+
         sheetBinding.btnResetFilters.setOnClickListener {
             sortBy = SortBy.DEFAULT
             freeDeliveryOnly = false
             openOnly = false
+            minRating = 0.0
+            maxDeliveryMin = 999
             dialog.dismiss()
             applyFilters()
             updateFilterButtonState()
@@ -185,6 +231,16 @@ class HomeFragment : Fragment(), ScrollableToTop {
             }
             freeDeliveryOnly = sheetBinding.switchFreeDelivery.isChecked
             openOnly = sheetBinding.switchOpenOnly.isChecked
+            minRating = when (sheetBinding.chipGroupRating.checkedChipId) {
+                R.id.chip_rating_45 -> 4.5
+                R.id.chip_rating_40 -> 4.0
+                else                -> 0.0
+            }
+            maxDeliveryMin = when (sheetBinding.chipGroupTime.checkedChipId) {
+                R.id.chip_time_30 -> 30
+                R.id.chip_time_45 -> 45
+                else              -> 999
+            }
             dialog.dismiss()
             applyFilters()
             updateFilterButtonState()
@@ -194,7 +250,7 @@ class HomeFragment : Fragment(), ScrollableToTop {
     }
 
     private fun updateFilterButtonState() {
-        val isActive = sortBy != SortBy.DEFAULT || freeDeliveryOnly || openOnly
+        val isActive = sortBy != SortBy.DEFAULT || freeDeliveryOnly || openOnly || minRating > 0 || maxDeliveryMin < 999
         binding.btnSortFilter.setBackgroundResource(
             if (isActive) R.drawable.bg_filter_btn_active else R.drawable.bg_filter_btn
         )
@@ -227,6 +283,13 @@ class HomeFragment : Fragment(), ScrollableToTop {
         if (activeCategory != "all") filtered = filtered.filter { it.category == activeCategory }
         if (openOnly) filtered = filtered.filter { it.isOpen }
         if (freeDeliveryOnly) filtered = filtered.filter { it.deliveryFee == 0 }
+        if (minRating > 0) filtered = filtered.filter { it.rating >= minRating }
+        if (maxDeliveryMin < 999) {
+            filtered = filtered.filter { r ->
+                r.deliveryTime.split("-").firstOrNull()?.trim()
+                    ?.replace("[^0-9]".toRegex(), "")?.toIntOrNull()?.let { it <= maxDeliveryMin } ?: true
+            }
+        }
         if (searchQuery.isNotBlank()) {
             filtered = filtered.filter {
                 it.name.contains(searchQuery, ignoreCase = true) ||
@@ -255,6 +318,7 @@ class HomeFragment : Fragment(), ScrollableToTop {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        skeletonAnimator?.cancel()
         _binding = null
     }
 }

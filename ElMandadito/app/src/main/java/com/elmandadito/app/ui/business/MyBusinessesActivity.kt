@@ -239,11 +239,11 @@ class MyBusinessesActivity : AppCompatActivity() {
             isChecked = b.isOpen
             setOnCheckedChangeListener { _, isChecked ->
                 BusinessRepository.save(b.copy(isOpen = isChecked))
-                android.widget.Toast.makeText(
-                    this@MyBusinessesActivity,
-                    if (isChecked) "✓ ${b.name} marcado como abierto" else "${b.name} marcado como cerrado",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
+                val msg = if (isChecked) "${b.name} marcado como abierto" else "${b.name} marcado como cerrado"
+                com.google.android.material.snackbar.Snackbar.make(binding.root, msg, com.google.android.material.snackbar.Snackbar.LENGTH_SHORT)
+                    .setBackgroundTint(android.graphics.Color.parseColor("#1A1A1A"))
+                    .setTextColor(android.graphics.Color.WHITE)
+                    .show()
             }
         }
         toggleRow.addView(toggle)

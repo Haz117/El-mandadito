@@ -479,6 +479,21 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- Skeleton loading placeholders -->
+        <LinearLayout
+            android:id="@+id/layout_skeleton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <include layout="@layout/item_restaurant_skeleton" />
+            <include layout="@layout/item_restaurant_skeleton" />
+            <include layout="@layout/item_restaurant_skeleton" />
+            <include layout="@layout/item_restaurant_skeleton" />
+
+        </LinearLayout>
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_restaurants"
             android:layout_width="match_parent"

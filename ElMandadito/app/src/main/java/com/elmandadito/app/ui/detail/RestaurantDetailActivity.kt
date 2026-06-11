@@ -255,7 +255,10 @@ class RestaurantDetailActivity : AppCompatActivity() {
 
     private fun showItemCustomizationSheet(menuItem: MenuItem) {
         if (!isRestaurantOpen) {
-            android.widget.Toast.makeText(this, "Este negocio está cerrado por ahora", android.widget.Toast.LENGTH_SHORT).show()
+            com.google.android.material.snackbar.Snackbar.make(binding.root, "Este negocio está cerrado por ahora", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT)
+                .setBackgroundTint(android.graphics.Color.parseColor("#1A1A1A"))
+                .setTextColor(android.graphics.Color.WHITE)
+                .show()
             return
         }
         val dialog = BottomSheetDialog(this, R.style.BottomSheetDialogTheme)
@@ -334,7 +337,10 @@ class RestaurantDetailActivity : AppCompatActivity() {
             AnimationUtils.loadAnimation(this, R.anim.scale_up)
         )
         launchEmojiFly(menuItem.emoji)
-        android.widget.Toast.makeText(this, label, android.widget.Toast.LENGTH_SHORT).show()
+        com.google.android.material.snackbar.Snackbar.make(binding.root, label, com.google.android.material.snackbar.Snackbar.LENGTH_SHORT)
+            .setBackgroundTint(android.graphics.Color.parseColor("#1A1A1A"))
+            .setTextColor(android.graphics.Color.WHITE)
+            .show()
     }
 
     private fun launchEmojiFly(emoji: String) {
