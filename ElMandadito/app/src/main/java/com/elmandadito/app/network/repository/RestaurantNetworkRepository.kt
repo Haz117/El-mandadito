@@ -4,6 +4,8 @@ import com.elmandadito.app.network.RetrofitClient
 import com.elmandadito.app.network.api.RestaurantApi
 import com.elmandadito.app.network.dto.MenuItemResponse
 import com.elmandadito.app.network.dto.RestaurantResponse
+import java.io.IOException
+import java.net.SocketTimeoutException
 
 class RestaurantNetworkRepository(private val tokenProvider: () -> String?) {
 
@@ -11,23 +13,25 @@ class RestaurantNetworkRepository(private val tokenProvider: () -> String?) {
         RetrofitClient.build(tokenProvider).create(RestaurantApi::class.java)
     }
 
-    suspend fun getAll(category: String? = null, search: String? = null): Result<List<RestaurantResponse>> = runCatching {
-        val response = api.getAll(category, search)
-        response.body()?.data ?: emptyList()
-    }
+    suspend fun getAll(category: String? = null, search: String? = null): Result<List<RestaurantResponse>> =
+        safe { api.getAll(category, search).body()?.data ?: emptyList() }
 
-    suspend fun getById(id: Long): Result<RestaurantResponse> = runCatching {
-        val response = api.getById(id)
-        response.body()?.data ?: throw Exception("Restaurante no encontrado")
-    }
+    suspend fun getById(id: Long): Result<RestaurantResponse> =
+        safe { api.getById(id).body()?.data ?: throw Exception("Restaurante no encontrado") }
 
-    suspend fun getNearby(lat: Double, lng: Double): Result<List<RestaurantResponse>> = runCatching {
-        val response = api.getNearby(lat, lng)
-        response.body()?.data ?: emptyList()
-    }
+    suspend fun getNearby(lat: Double, lng: Double): Result<List<RestaurantResponse>> =
+        safe { api.getNearby(lat, lng).body()?.data ?: emptyList() }
 
-    suspend fun getMenu(restaurantId: Long): Result<List<MenuItemResponse>> = runCatching {
-        val response = api.getMenu(restaurantId)
-        response.body()?.data ?: emptyList()
+    suspend fun getMenu(restaurantId: Long): Result<List<MenuItemResponse>> =
+        safe { api.getMenu(restaurantId).body()?.data ?: emptyList() }
+
+    private suspend fun <T> safe(block: suspend () -> T): Result<T> = try {
+        Result.success(block())
+    } catch (e: SocketTimeoutException) {
+        Result.failure(Exception("El servidor tardó demasiado en responder"))
+    } catch (e: IOException) {
+        Result.failure(Exception("Sin conexión a internet"))
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 }

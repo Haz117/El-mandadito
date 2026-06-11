@@ -49,13 +49,14 @@ class RestaurantDetailActivity : AppCompatActivity() {
     private var restaurantCategory = ""
     private var isRestaurantOpen = true
     private var isFloatingCartVisible = false
+    private var networkId = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRestaurantDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val networkId = intent.getLongExtra("restaurant_id_long", 0L)
+        networkId = intent.getLongExtra("restaurant_id_long", 0L)
         val localId = intent.getIntExtra("restaurant_id", -1)
 
         BusinessRepository.init(this)
@@ -137,33 +138,57 @@ class RestaurantDetailActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.restaurant.collect { state ->
-                        if (state is UiState.Success) {
-                            val r = state.data
-                            restaurantName = r.name
-                            restaurantCategory = r.category?.lowercase() ?: "other"
-                            isRestaurantOpen = r.isOpen
-                            populateUi(
-                                name = r.name,
-                                category = restaurantCategory,
-                                rating = String.format("%.1f", r.rating),
-                                time = "${r.deliveryTimeMin}–${r.deliveryTimeMax} min",
-                                fee = if (r.deliveryFee == 0.0) "Gratis" else "$${r.deliveryFee.toInt()}",
-                                isOpen = r.isOpen,
-                                menu = emptyList()
-                            )
-                            menuAdapter = MenuAdapter(restaurantCategory) { menuItem ->
-                                showItemCustomizationSheet(menuItem)
+                        when (state) {
+                            is UiState.Success -> {
+                                val r = state.data
+                                restaurantName = r.name
+                                restaurantCategory = r.category?.lowercase() ?: "other"
+                                isRestaurantOpen = r.isOpen
+                                populateUi(
+                                    name = r.name,
+                                    category = restaurantCategory,
+                                    rating = String.format("%.1f", r.rating),
+                                    time = "${r.deliveryTimeMin}–${r.deliveryTimeMax} min",
+                                    fee = if (r.deliveryFee == 0.0) "Gratis" else "$${r.deliveryFee.toInt()}",
+                                    isOpen = r.isOpen,
+                                    menu = emptyList()
+                                )
+                                menuAdapter = MenuAdapter(restaurantCategory) { menuItem ->
+                                    showItemCustomizationSheet(menuItem)
+                                }
+                                binding.recyclerMenu.adapter = menuAdapter
                             }
-                            binding.recyclerMenu.adapter = menuAdapter
+                            is UiState.Error -> {
+                                com.google.android.material.snackbar.Snackbar
+                                    .make(binding.root, state.message, com.google.android.material.snackbar.Snackbar.LENGTH_INDEFINITE)
+                                    .setAction("Reintentar") { viewModel.load(networkId) }
+                                    .setBackgroundTint(Color.parseColor("#1A1A1A"))
+                                    .setTextColor(Color.WHITE)
+                                    .setActionTextColor(Color.parseColor("#FF9500"))
+                                    .show()
+                            }
+                            else -> {}
                         }
                     }
                 }
                 launch {
                     viewModel.menu.collect { state ->
-                        if (state is UiState.Success) {
-                            val categories = state.data.toMenuCategories()
-                            menuAdapter.submitSections(categories)
-                            setupCategoryTabs(categories.map { it.name })
+                        when (state) {
+                            is UiState.Success -> {
+                                val categories = state.data.toMenuCategories()
+                                menuAdapter.submitSections(categories)
+                                setupCategoryTabs(categories.map { it.name })
+                            }
+                            is UiState.Error -> {
+                                com.google.android.material.snackbar.Snackbar
+                                    .make(binding.root, "Error al cargar el menú. Toca para reintentar.", com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                                    .setAction("Reintentar") { viewModel.load(networkId) }
+                                    .setBackgroundTint(Color.parseColor("#1A1A1A"))
+                                    .setTextColor(Color.WHITE)
+                                    .setActionTextColor(Color.parseColor("#FF9500"))
+                                    .show()
+                            }
+                            else -> {}
                         }
                     }
                 }

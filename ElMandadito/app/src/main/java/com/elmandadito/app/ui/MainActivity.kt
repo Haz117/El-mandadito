@@ -1,9 +1,15 @@
 package com.elmandadito.app.ui
 
+import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.elmandadito.app.R
 import com.elmandadito.app.data.AddressManager
 import com.elmandadito.app.data.BusinessRepository
@@ -13,10 +19,15 @@ import com.elmandadito.app.data.OrderHistoryManager
 import com.elmandadito.app.data.UserPrefsManager
 import com.elmandadito.app.databinding.ActivityMainBinding
 import com.elmandadito.app.compose.ComposeHomeFragment
+import com.elmandadito.app.network.NetworkMonitor
+import com.elmandadito.app.network.SessionManager
+import com.elmandadito.app.ui.auth.LoginActivity
 import com.elmandadito.app.ui.cart.CartFragment
 import com.elmandadito.app.ui.favorites.FavoritesFragment
 import com.elmandadito.app.ui.profile.ProfileFragment
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -38,6 +49,8 @@ class MainActivity : AppCompatActivity() {
         setupBottomNav()
         setupBackNavigation()
         observeCart()
+        observeNetworkState()
+        observeSessionState()
 
         if (savedInstanceState == null) {
             if (intent.getBooleanExtra("open_cart", false)) {
@@ -115,6 +128,46 @@ class MainActivity : AppCompatActivity() {
             if (count > 0) badge.number = count
             if (count > prevCartCount) bounceNavItem(R.id.nav_cart)
             prevCartCount = count
+        }
+    }
+
+    private fun observeNetworkState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                NetworkMonitor.isOnline.collect { isOnline ->
+                    if (isOnline) {
+                        if (binding.bannerOffline.visibility == View.VISIBLE) {
+                            binding.bannerOffline.animate().alpha(0f).setDuration(220).withEndAction {
+                                binding.bannerOffline.visibility = View.GONE
+                            }.start()
+                        }
+                    } else {
+                        binding.bannerOffline.alpha = 0f
+                        binding.bannerOffline.visibility = View.VISIBLE
+                        binding.bannerOffline.animate().alpha(1f).setDuration(280).start()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun observeSessionState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                SessionManager.sessionExpired.collect { expired ->
+                    if (expired) {
+                        SessionManager.reset()
+                        UserPrefsManager.setLoggedIn(false)
+                        Snackbar.make(binding.root, "Tu sesión ha expirado. Inicia sesión de nuevo.", Snackbar.LENGTH_LONG)
+                            .setBackgroundTint(Color.parseColor("#C62828"))
+                            .setTextColor(Color.WHITE)
+                            .show()
+                        startActivity(Intent(this@MainActivity, LoginActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        })
+                    }
+                }
+            }
         }
     }
 

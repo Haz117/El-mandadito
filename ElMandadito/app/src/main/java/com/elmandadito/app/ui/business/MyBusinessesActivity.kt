@@ -220,6 +220,16 @@ class MyBusinessesActivity : AppCompatActivity() {
         statsRow.addView(statCell("Calificación", "5.0"))
         card.addView(statsRow)
 
+        card.addView(TextView(this).apply {
+            text = "* Estadísticas de muestra — se actualizarán con datos reales al conectar el backend"
+            textSize = 10f
+            setTextColor(Color.parseColor("#AAAAAA"))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = (8 * d).toInt() }
+        })
+
         // ── Open/Closed toggle ────────────────────────────────────────────
         val toggleRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL

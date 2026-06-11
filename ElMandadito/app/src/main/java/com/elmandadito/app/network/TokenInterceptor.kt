@@ -1,5 +1,6 @@
 package com.elmandadito.app.network
 
+import com.elmandadito.app.network.SessionManager
 import okhttp3.Interceptor
 import okhttp3.Response
 
@@ -14,6 +15,8 @@ class TokenInterceptor(private val tokenProvider: () -> String?) : Interceptor {
         } else {
             chain.request()
         }
-        return chain.proceed(request)
+        val response = chain.proceed(request)
+        if (response.code == 401) SessionManager.notifyExpired()
+        return response
     }
 }
