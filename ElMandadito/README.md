@@ -1,218 +1,208 @@
-# El Mandadito 🛵
+# El Mandadito
 
-Aplicación de delivery de comida a domicilio para México. Proyecto full-stack compuesto por un backend Spring Boot y una app Android nativa.
-
----
-
-## Estructura del repositorio
-
-```
-.
-├── mandadito-backend/   # API REST — Spring Boot 3.2.5 + Kotlin
-└── ElMandadito/         # App Android — Kotlin + Jetpack Compose + Views
-```
+Aplicación Android de delivery de comida a domicilio para municipios de México. Kotlin nativo con Jetpack Compose, backend en Supabase (PostgreSQL + PostgREST + Auth).
 
 ---
 
-## Backend
+## Stack
 
-### Stack
-- **Spring Boot 3.2.5** + Kotlin 1.9.23
-- **PostgreSQL** (Flyway migrations)
-- **Spring Security 6** stateless con JWT (jjwt 0.12.5)
-- **springdoc-openapi 2.5.0** — Swagger UI en `/swagger-ui.html`
+### Android
+| Capa | Tecnología |
+|------|-----------|
+| UI | Jetpack Compose + Material 3 + XML Views (fragmentos legacy) |
+| Arquitectura | MVVM — ViewModel + StateFlow |
+| Inyección de dependencias | Hilt |
+| Red | Retrofit 2 + OkHttp + Gson (`LOWER_CASE_WITH_UNDERSCORES`) |
+| Sesión | DataStore Preferences (JWT) + SharedPreferences (estado UI) |
+| Imágenes | Coil 2.7 (URIs locales + URLs de red) |
+| Push | Firebase Cloud Messaging (FCM) |
+| minSdk | 26 (Android 8) |
 
-### Módulos
-| Módulo | Endpoints |
-|--------|-----------|
-| Auth | `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` |
-| Restaurants | `GET /api/restaurants`, `GET /api/restaurants/{id}`, `GET /api/restaurants/nearby` |
-| Menu | `GET /api/restaurants/{id}/menu`, `POST/PUT/DELETE /api/menu-items` |
-| Cart | `GET/POST/DELETE /api/cart`, `DELETE /api/cart/clear` |
-| Orders | `POST /api/orders`, `GET /api/orders/my`, `GET /api/orders/{id}`, `POST /api/orders/{id}/cancel` |
-| Payments | `POST /api/payments/create`, `POST /api/payments/{id}/confirm` |
-| Notifications | `POST /api/notifications/register-token`, `DELETE /api/notifications/unregister-token` |
-| Loyalty | `GET /api/loyalty/my`, `POST /api/loyalty/redeem` |
-| Admin | `GET /api/admin/users`, `POST /api/admin/businesses/{id}/approve` |
-
-### Roles
-`USER` · `BUSINESS_OWNER` · `DRIVER` · `ADMIN`
-
-### Configuración (variables de entorno)
-
-```env
-DB_URL=jdbc:postgresql://localhost:5432/mandadito
-DB_USERNAME=postgres
-DB_PASSWORD=tupassword
-JWT_SECRET=clave-secreta-256-bits
-JWT_EXPIRATION=86400000
-PORT=8080
-```
-
-### Migraciones Flyway
-| Versión | Contenido |
-|---------|-----------|
-| V1 | `users` |
-| V2 | `businesses`, `restaurants`, `menu_items` |
-| V3 | `addresses`, `carts`, `cart_items`, `orders`, `order_items` |
-| V4 | `favorites`, `reviews` |
-| V5 | `device_tokens`, `payments` |
-| V6 | `order_events`, `loyalty_points`, `promotions` |
-
-### Ejecutar localmente
-
-```bash
-cd mandadito-backend
-./mvnw spring-boot:run
-```
+### Backend
+| Servicio | Uso |
+|----------|-----|
+| **Supabase Auth** | Registro, login, recuperación de contraseña (JWT) |
+| **Supabase PostgREST** | CRUD de restaurantes, menú, pedidos, reseñas, tokens FCM |
+| **Row Level Security** | Cada usuario solo accede a sus propios datos |
 
 ---
 
-## Android
-
-### Stack
-- **Kotlin** + **Jetpack Compose** (UI principal) + XML Views (legacy fragments)
-- **Hilt** — inyección de dependencias
-- **ViewModel + StateFlow** — arquitectura MVVM
-- **Retrofit 2.11 + OkHttp** — capa de red
-- **DataStore Preferences** — persistencia del JWT
-- **Coil 2.7** — carga de imágenes (content:// URIs + URLs de red)
-- **Firebase Cloud Messaging** — notificaciones push
-- **Material 3**
-
-### Arquitectura
+## Arquitectura Android
 
 ```
 ui/
-  auth/          AuthViewModel  →  LoginActivity, RegisterActivity
-  home/          HomeViewModel  →  ComposeHomeFragment → HomeScreen (Compose)
-  detail/        RestaurantDetailViewModel  →  RestaurantDetailActivity
-  cart/          CartViewModel  →  CartFragment
-  profile/       ProfileViewModel  →  ProfileFragment
-  common/        UiState<T>  (Idle | Loading | Success | Error)
+  auth/       AuthViewModel     → LoginActivity, RegisterActivity
+  home/       HomeViewModel     → ComposeHomeFragment → HomeScreen (Compose)
+  detail/     RestaurantDetail… → RestaurantDetailActivity
+  cart/       CartViewModel     → CartFragment
+  profile/    ProfileViewModel, ReviewViewModel → ProfileFragment
+  common/     UiState<T>  (Idle | Loading | Success | Error)
+
 network/
-  api/           AuthApi, RestaurantApi, OrderApi
-  repository/    AuthRepository, RestaurantNetworkRepository, OrderNetworkRepository
-  dto/           DTOs + RestaurantMapper (RestaurantResponse → Restaurant)
+  api/        AuthApi, RestaurantApi, OrderApi, ReviewApi, NotificationApi
+  repository/ AuthRepository, RestaurantNetworkRepository,
+              OrderNetworkRepository, ReviewNetworkRepository,
+              NotificationNetworkRepository
+  dto/        DTOs + RestaurantMapper (RestaurantResponse → Restaurant)
+
 di/
-  AppModule      @Singleton providers para todos los repositories
+  AppModule   @Singleton providers para todos los repositorios
+
 data/
-  SampleData     Datos de muestra (fallback cuando el backend no está disponible)
-  Models         Restaurant, MenuItem, CartItem, etc.
+  DataStoreExt     Context.dataStore extension (JWT session)
+  SampleData       Datos locales de muestra (fallback / restaurantes sin Supabase ID)
+  CartRepository   Carrito con LiveData + SharedPreferences
+  OrderHistoryManager  Historial local + merge con pedidos de red
+  Models           Restaurant, MenuItem, CartItem, OrderRecord, …
 ```
 
-### Configuración
+---
 
-El backend corre en `http://10.0.2.2:8080/` por defecto (emulador → localhost).
-Para producción cambia `BASE_URL` en `RetrofitClient.kt`.
+## Configuración inicial
 
-### Flujo de autenticación
-1. `SplashActivity` consulta `AuthRepository.isLoggedIn()` (DataStore)
-2. Si hay token → `MainActivity`; si no → `LoginActivity`
-3. `LoginActivity` llama `AuthViewModel.login()` → `AuthRepository` → backend
-4. Token se guarda en DataStore; nombre/email en `UserPrefsManager` para la UI local
+### 1. Clave anon de Supabase
 
-### Restaurantes
-- `HomeViewModel` carga restaurantes del backend al iniciar
-- Si el backend no responde, `HomeScreen` muestra `SampleData` como fallback
-- Al hacer clic en un restaurante de red, se pasa `restaurant_id_long` a `RestaurantDetailActivity`
-- `RestaurantDetailViewModel` carga detalles y menú en paralelo
+Crea (o edita) el archivo `local.properties` en la raíz del proyecto:
+
+```properties
+sdk.dir=C\:\\Users\\<tu-usuario>\\AppData\\Local\\Android\\Sdk
+supabase.url=https://<tu-proyecto>.supabase.co/
+supabase.anon.key=<tu-clave-anon>
+```
+
+> `local.properties` está en `.gitignore` — nunca se sube al repositorio.
+
+### 2. Seed de base de datos
+
+Ejecuta `supabase_seed.sql` en **Supabase → SQL Editor**. El script:
+- Inserta 6 restaurantes y 50 platillos de muestra
+- Crea las políticas RLS necesarias (SELECT público en restaurantes/menú, INSERT/SELECT propio en pedidos/reseñas)
+- Añade triggers para auto-completar `user_id` en `reviews` y `device_tokens`
+
+### 3. Firebase (notificaciones push)
+
+1. Crea una app Android en [Firebase Console](https://console.firebase.google.com) con package `com.elmandadito.app`
+2. Descarga `google-services.json` y colócalo en `app/`
+3. El archivo de stub actual en el repo permite compilar pero no entregará push reales
+
+---
+
+## Flujo de autenticación
+
+```
+SplashActivity
+  ├─ UserPrefsManager.isLoggedIn() = true  →  MainActivity
+  └─ false                                  →  LoginActivity
+
+LoginActivity / RegisterActivity
+  └─ AuthRepository (Supabase Auth /auth/v1/token, /auth/v1/signup)
+       ├─ Éxito: guarda JWT en DataStore + nombre/email en SharedPreferences
+       │          registra token FCM en device_tokens
+       └─ Error: detecta "email_not_confirmed", "already registered", etc.
+
+Recuperar contraseña
+  └─ AuthRepository.recoverPassword()  →  POST /auth/v1/recover
+```
+
+Expiración de sesión: `SessionManager.sessionExpired` (StateFlow) limpia DataStore, SharedPreferences y carrito, y redirige al login.
+
+---
+
+## Flujo de pedidos
+
+```
+RestaurantDetailActivity
+  └─ CartRepository.addItem(menuItem, restaurantName, category, networkRestaurantId)
+
+CartFragment  →  CartViewModel.placeOrder()
+  ├─ networkRestaurantId > 0  →  OrderNetworkRepository.createOrder()
+  │     ├─ POST /rest/v1/orders        (crea el pedido)
+  │     └─ POST /rest/v1/order_items   (guarda los items)
+  └─ networkRestaurantId = 0  →  pedido local (sin llamada de red, para restaurantes sin ID de Supabase)
+
+OrderTrackingActivity
+  ├─ Animación de progreso local (4 pasos)
+  └─ Polling cada 15s a /rest/v1/orders?id=eq.{id}  →  sincroniza estado real
+       └─ Al entregar: ReviewViewModel.submitReview()  →  POST /rest/v1/reviews
+```
 
 ---
 
 ## Features implementadas
 
-- [x] Registro e inicio de sesión con JWT real
-- [x] Splash con routing de auth
-- [x] Home con restaurantes del backend (fallback a SampleData)
+- [x] Registro e inicio de sesión (Supabase Auth con JWT)
+- [x] Recuperación de contraseña por email
+- [x] Manejo de confirmación de email (`CONFIRM_EMAIL:` prefix)
+- [x] Splash con routing automático según sesión
+- [x] Home con restaurantes desde Supabase + fallback a SampleData
 - [x] Pull-to-refresh en home
-- [x] Detalle de restaurante + menú desde la red
-- [x] Carrito local con validación de restaurante único
-- [x] Checkout con selección de método de pago
-- [x] Historial de pedidos con calificación por estrellas
+- [x] Detalle de restaurante y menú desde Supabase
+- [x] Filtro de restaurantes por categoría y búsqueda
+- [x] Carrito con validación de restaurante único, swipe-to-delete, undo
+- [x] Código de promoción (MANDADITO20, BIENVENIDO, PROMO10)
+- [x] Progreso hacia envío gratis
+- [x] Checkout con selección de método de pago (efectivo / tarjeta / OXXO)
+- [x] Pedidos registrados en Supabase con sus `order_items`
+- [x] Tracking de pedido con polling de estado real desde Supabase
+- [x] Calificación con estrellas (bottom sheet) enviada a Supabase
+- [x] Historial de pedidos local + merge con pedidos de red
+- [x] Sistema de reputación (estrellas) por sanciones
+- [x] Mandapoints (loyalty) — cálculo local basado en pedidos
 - [x] Favoritos
-- [x] Perfil con sistema de reputación (estrellas)
-- [x] Mandapoints (loyalty) — backend listo, UI usa datos locales
-- [x] Búsqueda con historial
-- [x] Registro de negocios (local)
-- [x] Notificaciones push — FCM completo (Android + backend Firebase Admin SDK)
-- [x] Imágenes de restaurantes con Coil (URIs locales + URLs de red)
-- [x] Panel de admin — backend listo
+- [x] Perfil con edición de nombre y gestión de direcciones
+- [x] Registro de negocios propio (local)
+- [x] Notificaciones push con FCM
+- [x] Notificación local al entregar el pedido
+- [x] Banner offline cuando no hay conexión
+- [x] Sesión expirada → logout automático y redirect al login
+- [x] Imágenes con Coil (URIs locales y URLs de red)
+- [x] Modo oscuro compatible (colores definidos en theme)
 
-## Pendiente
+## Pendiente para producción
 
-- [ ] Migrar CartFragment a CartViewModel (red)
-- [ ] Migrar historial de pedidos a OrderNetworkRepository
-- [ ] Subida de imágenes para restaurantes y perfil
-- [ ] Mapa con tracking del repartidor
+- [ ] `google-services.json` real (sustituir el stub del repo)
+- [ ] Subida de imágenes para restaurantes y perfil (Supabase Storage)
+- [ ] Mapa con tracking GPS del repartidor
+- [ ] Panel de administración
+- [ ] Keystore de release para firmar el APK/AAB
 
 ---
 
 ## Despliegue en beta
 
-### 1. Firebase (notificaciones push)
+### App Android
 
-1. Crea un proyecto en [Firebase Console](https://console.firebase.google.com)
-2. Agrega una app Android con package name `com.elmandadito.app`
-3. Descarga `google-services.json` y colócalo en `ElMandadito/app/`
-4. En **Project Settings → Service Accounts** genera una clave privada (JSON)
-5. Sube ese JSON al servidor backend y configura la variable de entorno:
+1. En Android Studio: **Build → Generate Signed Bundle/APK → Android App Bundle**
+2. Crea un keystore nuevo (guárdalo seguro — lo necesitas para todas las actualizaciones)
+3. Sube el `.aab` a Google Play Console → **Pruebas → Prueba interna**
+   - La cuenta de desarrollador tiene un costo único de $25 USD
 
-```env
-FIREBASE_CREDENTIALS_PATH=/ruta/al/firebase-service-account.json
-```
+### Supabase en producción
 
-### 2. Backend — variables de entorno en producción
+El proyecto ya está en Supabase cloud. Para ir a producción:
 
-```env
-DB_URL=jdbc:postgresql://<host>:5432/mandadito
-DB_USERNAME=<usuario>
-DB_PASSWORD=<password>
-JWT_SECRET=<cadena-aleatoria-mínimo-256-bits>
-JWT_EXPIRATION=86400000
-FIREBASE_CREDENTIALS_PATH=/ruta/al/firebase-service-account.json
-PORT=8080
-```
+1. **Deshabilitar confirmación de email** (solo si quieres registro inmediato):
+   Dashboard → Authentication → Settings → Email → desactiva "Confirm email"
 
-> Genera `JWT_SECRET` con: `openssl rand -base64 32`
+2. **Rotar la service role key** si fue expuesta en algún momento:
+   Settings → API → Regenerate
 
-### 3. Hosting del backend
+3. **Política de contraseñas**:
+   Authentication → Settings → Password → mínimo 8 caracteres
 
-Opciones recomendadas para beta:
+4. **Backups automáticos**: activos por defecto en el plan Pro de Supabase
 
-| Plataforma | Tier gratis | Notas |
-|------------|-------------|-------|
-| **Railway** | 500 hrs/mes | `railway up` desde el repo, soporta PostgreSQL incluido |
-| **Render** | Sí (sleep en inactividad) | Conecta el repo de GitHub, agrega variables de entorno en el dashboard |
-| **Fly.io** | 3 VMs compartidas | `fly launch` desde `mandadito-backend/`, más control |
+---
 
-Pasos con Railway (el más rápido):
-```bash
-npm install -g @railway/cli
-railway login
-railway init
-railway add postgresql       # crea la DB y exporta DATABASE_URL automáticamente
-railway up                   # despliega el backend
-```
+## Estructura de tablas en Supabase
 
-### 4. URL del backend en la app Android
+| Tabla | Descripción |
+|-------|-------------|
+| `restaurants` | Catálogo de restaurantes (nombre, categoría, tiempos, fees) |
+| `menu_items` | Platillos por restaurante (nombre, precio, categoría, disponible) |
+| `orders` | Pedidos de usuarios (status, totales, método de pago) |
+| `order_items` | Items de cada pedido (nombre, precio, cantidad, subtotal) |
+| `reviews` | Calificaciones de pedidos (1–5 estrellas, comentario) |
+| `device_tokens` | Tokens FCM por usuario para notificaciones push |
 
-En `ElMandadito/app/src/main/java/com/elmandadito/app/network/RetrofitClient.kt` cambia:
-
-```kotlin
-private const val BASE_URL = "http://10.0.2.2:8080/"  // emulador
-// →
-private const val BASE_URL = "https://tu-app.railway.app/"
-```
-
-### 5. Google Play — beta cerrada
-
-1. Crea una cuenta de desarrollador en [play.google.com/console](https://play.google.com/console) ($25 única vez)
-2. Crea la app → **Pruebas → Prueba interna / Cerrada**
-3. Genera el APK firmado:
-   ```
-   Android Studio → Build → Generate Signed Bundle/APK → Android App Bundle
-   ```
-   (crea un keystore nuevo y guárdalo seguro — lo necesitas para todas las actualizaciones)
-4. Sube el `.aab` al track de prueba interna
-5. Agrega probadores por email desde la consola
+Todas las tablas tienen RLS habilitado. Los datos de restaurantes son públicos (SELECT anon); pedidos, reseñas y tokens solo son accesibles por el usuario autenticado dueño del registro.
