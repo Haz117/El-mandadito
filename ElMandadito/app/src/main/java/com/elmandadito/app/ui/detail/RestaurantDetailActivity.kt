@@ -111,7 +111,7 @@ class RestaurantDetailActivity : AppCompatActivity() {
         binding.btnClearMenuSearch.setOnClickListener { binding.editMenuSearch.setText("") }
 
         CartRepository.items.observe(this) { items ->
-            val restaurantItems = items.filter { it.restaurantName == restaurant.name }
+            val restaurantItems = items.filter { it.restaurantName == restaurantName }
             val restaurantCount = restaurantItems.sumOf { it.quantity }
             if (restaurantCount > 0) {
                 binding.textCartCountBadge.text = restaurantCount.toString()

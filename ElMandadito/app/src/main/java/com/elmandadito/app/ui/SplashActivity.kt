@@ -10,20 +10,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.elmandadito.app.data.UserPrefsManager
 import com.elmandadito.app.databinding.ActivitySplashBinding
-import com.elmandadito.app.network.repository.AuthRepository
-import com.elmandadito.app.ui.auth.LoginActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class SplashActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySplashBinding
-
-    @Inject
-    lateinit var authRepository: AuthRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,12 +30,7 @@ class SplashActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             delay(2200)
-            val destination = if (authRepository.isLoggedIn()) {
-                Intent(this@SplashActivity, MainActivity::class.java)
-            } else {
-                Intent(this@SplashActivity, LoginActivity::class.java)
-            }
-            startActivity(destination)
+            startActivity(Intent(this@SplashActivity, MainActivity::class.java))
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
             finish()
         }
