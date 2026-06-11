@@ -112,8 +112,7 @@ class ProfileFragment : Fragment() {
 
         val (tier, tierMin, tierMax) = OrderHistoryManager.getLoyaltyTier(points)
         val progress = if (tierMax > tierMin) ((points - tierMin) * 100 / (tierMax - tierMin)).coerceIn(0, 100) else 100
-        val medal = when (tier) { "Platino" -> "💎"; "Oro" -> "🥇"; "Plata" -> "🥈"; else -> "🥉" }
-        binding.textLoyaltyTier.text = "$medal Nivel $tier · $points pts"
+        binding.textLoyaltyTier.text = "Nivel $tier · $points pts"
         if (progress != lastProgress) {
             lastProgress = progress
             ObjectAnimator.ofInt(binding.progressLoyalty, "progress", 0, progress).apply {
@@ -330,15 +329,18 @@ class ProfileFragment : Fragment() {
 
         BusinessRepository.init(requireContext())
         val allRestaurants = SampleData.restaurants + BusinessRepository.getAll().map { it.toRestaurant() }
-        b.textOrderEmoji.text = allRestaurants.find { it.name == order.restaurantName }?.emoji ?: "🍽️"
+        val category = allRestaurants.find { it.name == order.restaurantName }?.category ?: ""
+        b.imgOrderIcon.setImageResource(categoryIconRes(category))
         b.textOrderRestaurant.text = order.restaurantName
         b.textOrderDate.text = order.date
         b.textOrderItems.text = order.itemCount.toString()
         b.textOrderTotal.text = "$${order.total}"
         b.textOrderPaymentLabel.text = order.paymentMethod
-        b.textOrderPaymentEmoji.text = when (order.paymentMethod) {
-            "Tarjeta" -> "💳"; "OXXO" -> "🏪"; else -> "💵"
-        }
+        b.imgOrderPaymentIcon.setImageResource(when (order.paymentMethod) {
+            "Tarjeta" -> R.drawable.ic_credit_card
+            "OXXO"    -> R.drawable.ic_oxxo
+            else      -> R.drawable.ic_cash
+        })
 
         val starViews = listOf(b.detailStar1, b.detailStar2, b.detailStar3, b.detailStar4, b.detailStar5)
         val stars = order.ratingStars
@@ -500,6 +502,16 @@ class ProfileFragment : Fragment() {
         }
 
         dialog.show()
+    }
+
+    private fun categoryIconRes(category: String) = when (category.lowercase()) {
+        "mexican"  -> R.drawable.ic_food_mexican
+        "burgers"  -> R.drawable.ic_food_burger
+        "pizza"    -> R.drawable.ic_food_pizza
+        "sushi"    -> R.drawable.ic_food_sushi
+        "chicken"  -> R.drawable.ic_food_chicken
+        "desserts" -> R.drawable.ic_food_dessert
+        else       -> R.drawable.ic_food_mexican
     }
 
     override fun onDestroyView() {

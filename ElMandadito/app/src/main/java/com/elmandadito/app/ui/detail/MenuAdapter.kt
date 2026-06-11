@@ -38,7 +38,7 @@ class MenuAdapter(
 
     private fun withPopular(sections: List<MenuCategory>): List<MenuCategory> {
         val popular = sections.flatMap { it.items }.filter { it.isPopular }
-        return if (popular.isNotEmpty()) listOf(MenuCategory("⭐ Más pedidos", popular)) + sections
+        return if (popular.isNotEmpty()) listOf(MenuCategory("Más pedidos", popular)) + sections
         else sections
     }
 

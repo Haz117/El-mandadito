@@ -99,10 +99,15 @@ class MyBusinessesActivity : AppCompatActivity() {
             ).apply { bottomMargin = (6 * d).toInt() }
         }
 
-        row1.addView(TextView(this).apply {
-            text = b.emoji
-            textSize = 28f
-            gravity = Gravity.CENTER
+        row1.addView(android.widget.ImageView(this).apply {
+            setImageResource(categoryIconRes(b.category))
+            setColorFilter(Color.parseColor("#6B6B6B"))
+            scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+            setPadding((10 * d).toInt(), (10 * d).toInt(), (10 * d).toInt(), (10 * d).toInt())
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(Color.parseColor("#F6F6F6"))
+            }
             layoutParams = LinearLayout.LayoutParams((44 * d).toInt(), (44 * d).toInt())
                 .apply { marginEnd = (10 * d).toInt() }
         })
@@ -212,7 +217,7 @@ class MyBusinessesActivity : AppCompatActivity() {
         statsRow.addView(vDivider())
         statsRow.addView(statCell("Pedidos este mes", orders.toString()))
         statsRow.addView(vDivider())
-        statsRow.addView(statCell("Calificación", "⭐ 5.0"))
+        statsRow.addView(statCell("Calificación", "5.0"))
         card.addView(statsRow)
 
         // ── Open/Closed toggle ────────────────────────────────────────────
@@ -262,7 +267,7 @@ class MyBusinessesActivity : AppCompatActivity() {
             )
         }
 
-        actions.addView(makeActionBtn("✏️  Editar",
+        actions.addView(makeActionBtn("Editar",
             Color.parseColor("#F6F6F6"), Color.parseColor("#E0E0E0"), Color.parseColor("#1A1A1A"),
             d, marginEnd = (8 * d).toInt()
         ).apply {
@@ -274,7 +279,7 @@ class MyBusinessesActivity : AppCompatActivity() {
             }
         })
 
-        actions.addView(makeActionBtn("🗑  Eliminar",
+        actions.addView(makeActionBtn("Eliminar",
             Color.parseColor("#FFEBEE"), Color.parseColor("#FFCDD2"), Color.parseColor("#E53935"),
             d, marginEnd = (8 * d).toInt()
         ).apply {
@@ -291,7 +296,7 @@ class MyBusinessesActivity : AppCompatActivity() {
             }
         })
 
-        actions.addView(makeActionBtn("👁  Ver",
+        actions.addView(makeActionBtn("Ver menú",
             Color.parseColor("#F6F6F6"), Color.parseColor("#E0E0E0"), Color.parseColor("#1A1A1A"),
             d, marginEnd = 0
         ).apply {
@@ -307,6 +312,16 @@ class MyBusinessesActivity : AppCompatActivity() {
 
         card.addView(actions)
         return card
+    }
+
+    private fun categoryIconRes(category: String) = when (category.lowercase()) {
+        "mexican", "mexicana"         -> R.drawable.ic_food_mexican
+        "burgers", "hamburguesas"     -> R.drawable.ic_food_burger
+        "pizza"                       -> R.drawable.ic_food_pizza
+        "sushi"                       -> R.drawable.ic_food_sushi
+        "chicken", "pollo"            -> R.drawable.ic_food_chicken
+        "desserts", "postres", "cafe" -> R.drawable.ic_food_dessert
+        else                          -> R.drawable.ic_food_mexican
     }
 
     private fun makeActionBtn(

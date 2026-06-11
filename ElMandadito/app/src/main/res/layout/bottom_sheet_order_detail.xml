@@ -25,14 +25,19 @@
         android:paddingHorizontal="20dp"
         android:paddingBottom="16dp">
 
-        <TextView
-            android:id="@+id/text_order_emoji"
+        <FrameLayout
             android:layout_width="54dp"
             android:layout_height="54dp"
-            android:gravity="center"
-            android:textSize="30sp"
-            android:background="@drawable/bg_meta_row"
-            android:text="🍽️" />
+            android:background="@drawable/bg_meta_row">
+            <ImageView
+                android:id="@+id/img_order_icon"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_food_mexican"
+                android:tint="@color/text_secondary"
+                android:contentDescription="@null" />
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -139,12 +144,13 @@
             android:gravity="center"
             android:background="@drawable/bg_meta_row"
             android:paddingVertical="14dp">
-            <TextView
-                android:id="@+id/text_order_payment_emoji"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="💵"
-                android:textSize="22sp" />
+            <ImageView
+                android:id="@+id/img_order_payment_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_cash"
+                android:tint="@color/text_secondary"
+                android:contentDescription="@null" />
             <TextView
                 android:id="@+id/text_order_payment_label"
                 android:layout_width="wrap_content"

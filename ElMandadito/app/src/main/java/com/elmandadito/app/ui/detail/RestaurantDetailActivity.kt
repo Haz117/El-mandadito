@@ -447,15 +447,16 @@ class RestaurantDetailActivity : AppCompatActivity() {
         })
 
         // Info rows
-        fun infoRow(icon: String, label: String, value: String) {
+        fun infoRow(iconRes: Int, label: String, value: String) {
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding((20 * d).toInt(), (10 * d).toInt(), (20 * d).toInt(), (10 * d).toInt())
             }
-            row.addView(TextView(this).apply {
-                text = icon; textSize = 18f
-                layoutParams = LinearLayout.LayoutParams((32 * d).toInt(), LinearLayout.LayoutParams.WRAP_CONTENT)
+            row.addView(android.widget.ImageView(this).apply {
+                setImageResource(iconRes)
+                setColorFilter(android.graphics.Color.parseColor("#6B6B6B"))
+                layoutParams = LinearLayout.LayoutParams((18 * d).toInt(), (18 * d).toInt())
                     .apply { marginEnd = (12 * d).toInt() }
             })
             row.addView(TextView(this).apply {
@@ -469,11 +470,11 @@ class RestaurantDetailActivity : AppCompatActivity() {
             root.addView(row)
         }
 
-        infoRow("⭐", "Calificación", "${restaurant.rating} / 5.0")
-        infoRow("🕐", "Tiempo de entrega", restaurant.deliveryTime)
-        infoRow("🛵", "Costo de envío", if (restaurant.deliveryFee == 0) "Gratis" else "\$${restaurant.deliveryFee}")
-        infoRow("🧾", "Pedido mínimo", "\$${restaurant.minimumOrder}")
-        infoRow("🔵", "Estado", if (restaurant.isOpen) "Abierto ahora" else "Cerrado")
+        infoRow(R.drawable.ic_star_filled,    "Calificación",       "${restaurant.rating} / 5.0")
+        infoRow(R.drawable.ic_clock,          "Tiempo de entrega",  restaurant.deliveryTime)
+        infoRow(R.drawable.ic_motor,          "Costo de envío",     if (restaurant.deliveryFee == 0) "Gratis" else "\$${restaurant.deliveryFee}")
+        infoRow(R.drawable.ic_receipt,        "Pedido mínimo",      "\$${restaurant.minimumOrder}")
+        infoRow(R.drawable.ic_check_circle,   "Estado",             if (restaurant.isOpen) "Abierto ahora" else "Cerrado")
 
         dialog.setContentView(root)
         dialog.show()
