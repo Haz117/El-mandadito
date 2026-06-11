@@ -10,12 +10,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.elmandadito.app.data.UserPrefsManager
 import com.elmandadito.app.databinding.ActivitySplashBinding
+import com.elmandadito.app.ui.auth.LoginActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SplashActivity : AppCompatActivity() {
+
+    // Cambiar a false para volver a activar el login
+    private val BYPASS_LOGIN = true
 
     private lateinit var binding: ActivitySplashBinding
 
@@ -25,7 +29,7 @@ class SplashActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         UserPrefsManager.init(this)
-        if (!UserPrefsManager.isLoggedIn()) {
+        if (BYPASS_LOGIN && !UserPrefsManager.isLoggedIn()) {
             UserPrefsManager.setLoggedIn(true)
             if (UserPrefsManager.getName().isBlank()) UserPrefsManager.setName("Usuario")
             if (UserPrefsManager.getStarRating() == 0) UserPrefsManager.setStarRating(5)
@@ -35,7 +39,12 @@ class SplashActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             delay(2200)
-            startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+            val destination = if (BYPASS_LOGIN || UserPrefsManager.isLoggedIn()) {
+                Intent(this@SplashActivity, MainActivity::class.java)
+            } else {
+                Intent(this@SplashActivity, LoginActivity::class.java)
+            }
+            startActivity(destination)
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
             finish()
         }
