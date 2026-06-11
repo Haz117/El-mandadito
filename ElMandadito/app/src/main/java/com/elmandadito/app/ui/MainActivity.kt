@@ -21,7 +21,9 @@ import com.elmandadito.app.databinding.ActivityMainBinding
 import com.elmandadito.app.compose.ComposeHomeFragment
 import com.elmandadito.app.network.NetworkMonitor
 import com.elmandadito.app.network.SessionManager
+import com.elmandadito.app.network.repository.AuthRepository
 import com.elmandadito.app.ui.auth.LoginActivity
+import javax.inject.Inject
 import com.elmandadito.app.ui.cart.CartFragment
 import com.elmandadito.app.ui.favorites.FavoritesFragment
 import com.elmandadito.app.ui.profile.ProfileFragment
@@ -32,6 +34,7 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
+    @Inject lateinit var authRepository: AuthRepository
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -157,7 +160,10 @@ class MainActivity : AppCompatActivity() {
                 SessionManager.sessionExpired.collect { expired ->
                     if (expired) {
                         SessionManager.reset()
+                        // Limpia ambas capas de sesión para que el Splash redirija correctamente
+                        authRepository.logout()
                         UserPrefsManager.setLoggedIn(false)
+                        CartRepository.clearCart()
                         Snackbar.make(binding.root, "Tu sesión ha expirado. Inicia sesión de nuevo.", Snackbar.LENGTH_LONG)
                             .setBackgroundTint(Color.parseColor("#C62828"))
                             .setTextColor(Color.WHITE)

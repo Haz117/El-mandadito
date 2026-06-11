@@ -15,5 +15,5 @@ interface NotificationApi {
     suspend fun registerToken(@Body request: RegisterTokenRequest): Response<Unit>
 
     @DELETE("rest/v1/device_tokens")
-    suspend fun unregisterToken(@Query("token") token: String): Response<Unit>
+    suspend fun unregisterToken(@Query("token") filter: String): Response<Unit>
 }

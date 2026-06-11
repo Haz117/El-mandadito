@@ -70,6 +70,7 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupActions()
         observeLogout()
+        observeNetworkOrders()
     }
 
     private fun observeLogout() {
@@ -89,11 +90,39 @@ class ProfileFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        viewModel.loadOrders()
         refreshStats()
         setupOrderHistory()
         refreshReputation()
         binding.textProfileName.text = "¡Hola, ${UserPrefsManager.getName()}!"
         binding.textProfileEmail.text = UserPrefsManager.getEmail().ifEmpty { "Sin sesión iniciada" }
+    }
+
+    private fun observeNetworkOrders() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.networkOrders.collect { netOrders ->
+                    if (netOrders.isEmpty()) return@collect
+                    // Merge: los pedidos de red que no estén ya en local (por networkOrderId)
+                    val local = OrderHistoryManager.getOrders()
+                    val localIds = local.map { it.networkOrderId }.toSet()
+                    val newOnes = netOrders.filter { it.networkOrderId !in localIds }
+                    newOnes.forEach { o ->
+                        OrderHistoryManager.saveOrder(
+                            restaurantName = o.restaurantName,
+                            total          = o.total,
+                            itemCount      = o.itemCount,
+                            paymentMethod  = o.paymentMethod,
+                            networkOrderId = o.networkOrderId
+                        )
+                    }
+                    if (newOnes.isNotEmpty()) {
+                        refreshStats()
+                        setupOrderHistory()
+                    }
+                }
+            }
+        }
     }
 
     private fun refreshStats() {

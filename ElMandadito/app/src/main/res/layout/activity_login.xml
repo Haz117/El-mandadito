@@ -139,8 +139,22 @@
             android:textColor="#E53935"
             android:textSize="13sp"
             android:gravity="center"
-            android:layout_marginBottom="14dp"
+            android:layout_marginBottom="10dp"
             android:visibility="gone" />
+
+        <!-- Forgot password -->
+        <TextView
+            android:id="@+id/btn_forgot_password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginBottom="18dp"
+            android:text="¿Olvidaste tu contraseña?"
+            android:textColor="#6B6B6B"
+            android:textSize="13sp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless" />
 
         <!-- Button -->
         <Button

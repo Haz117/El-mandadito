@@ -20,11 +20,11 @@ object CartRepository {
         loadFromPrefs()
     }
 
-    fun addItem(menuItem: MenuItem, restaurantName: String, restaurantCategory: String) {
+    fun addItem(menuItem: MenuItem, restaurantName: String, restaurantCategory: String, networkRestaurantId: Long = 0L) {
         val list = items.value ?: mutableListOf()
         val existing = list.find { it.menuItem.id == menuItem.id }
         if (existing != null) existing.quantity++
-        else list.add(CartItem(menuItem, restaurantName, restaurantCategory))
+        else list.add(CartItem(menuItem, restaurantName, restaurantCategory, networkRestaurantId))
         items.value = list
         saveToPrefs()
     }
@@ -95,6 +95,7 @@ object CartRepository {
                 put("item_popular", ci.menuItem.isPopular)
                 put("restaurant_name", ci.restaurantName)
                 put("restaurant_category", ci.restaurantCategory)
+                put("network_restaurant_id", ci.networkRestaurantId)
                 put("quantity", ci.quantity)
             })
         }
@@ -124,6 +125,7 @@ object CartRepository {
                     menuItem = menuItem,
                     restaurantName = obj.getString("restaurant_name"),
                     restaurantCategory = obj.getString("restaurant_category"),
+                    networkRestaurantId = obj.optLong("network_restaurant_id", 0L),
                     quantity = obj.getInt("quantity")
                 ))
             }

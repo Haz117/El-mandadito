@@ -41,6 +41,15 @@ data class OrderItemResponse(
     val subtotal: Double
 )
 
+data class OrderItemInsertRequest(
+    val orderId: Long,
+    val menuItemId: Long?,
+    val name: String,
+    val price: Double,
+    val quantity: Int,
+    val subtotal: Double
+)
+
 // Mantenidos por compatibilidad con CartFragment y CartRepository existentes
 data class CreateOrderRequest(
     val addressId: Long,

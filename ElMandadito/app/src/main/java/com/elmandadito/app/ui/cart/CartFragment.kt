@@ -13,8 +13,15 @@ import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.elmandadito.app.ui.common.UiState
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import com.elmandadito.app.R
 import com.elmandadito.app.data.AddressManager
 import com.elmandadito.app.data.CartItem
@@ -30,11 +37,13 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import kotlin.random.Random
 
+@AndroidEntryPoint
 class CartFragment : Fragment() {
 
     private var _binding: FragmentCartBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: CartAdapter
+    private val viewModel: CartViewModel by viewModels()
 
     private var selectedPayment = "cash"
     private var contentShown = false
@@ -117,6 +126,8 @@ class CartFragment : Fragment() {
             }
         }
 
+        observeOrderResult()
+
         binding.btnCheckout.setOnClickListener {
             when {
                 !UserAuthManager.isLoggedIn() -> {
@@ -138,6 +149,35 @@ class CartFragment : Fragment() {
                         .show()
                 }
                 else -> showPaymentBottomSheet()
+            }
+        }
+    }
+
+    private fun observeOrderResult() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.orderResult.collect { state ->
+                    when (state) {
+                        is UiState.Loading -> {
+                            binding.btnCheckout.isEnabled = false
+                            binding.btnCheckout.text = "Enviando pedido..."
+                        }
+                        is UiState.Success -> {
+                            viewModel.resetOrderResult()
+                            finishOrder(state.data)
+                        }
+                        is UiState.Error -> {
+                            viewModel.resetOrderResult()
+                            binding.btnCheckout.isEnabled = true
+                            binding.btnCheckout.text = "Realizar pedido"
+                            Snackbar.make(binding.root, state.message, Snackbar.LENGTH_LONG)
+                                .setBackgroundTint(Color.parseColor("#C62828"))
+                                .setTextColor(Color.WHITE)
+                                .show()
+                        }
+                        is UiState.Idle -> Unit
+                    }
+                }
             }
         }
     }
@@ -294,32 +334,40 @@ class CartFragment : Fragment() {
 
     private fun placeOrder() {
         val items = CartRepository.items.value ?: return
+        val networkRestaurantId = items.firstOrNull()?.networkRestaurantId ?: 0L
+        val note = binding.editDeliveryNote.text?.toString()?.trim()
+
+        viewModel.placeOrder(
+            networkRestaurantId = networkRestaurantId,
+            subtotal            = CartRepository.subtotal().toDouble(),
+            deliveryFee         = CartRepository.deliveryFee().toDouble(),
+            discount            = CartRepository.discountAmount().toDouble(),
+            total               = CartRepository.total().toDouble(),
+            paymentMethod       = selectedPayment,
+            notes               = note,
+            address             = AddressManager.getSelectedLabel(),
+            cartItems           = items.toList()
+        )
+    }
+
+    private fun finishOrder(order: com.elmandadito.app.network.dto.OrderResponse) {
+        val items = CartRepository.items.value ?: emptyList()
         val restaurantName = items.firstOrNull()?.restaurantName ?: ""
-        val total = CartRepository.total()
-        val itemCount = CartRepository.itemCount()
+        val total = order.total.toInt()
+        val itemCount = items.sumOf { it.quantity }.coerceAtLeast(1)
         val paymentLabel = when (selectedPayment) {
             "card" -> "Tarjeta"; "oxxo" -> "OXXO"; else -> "Efectivo"
         }
-        val note = binding.editDeliveryNote.text?.toString()?.trim() ?: ""
-        if (note.isNotEmpty()) {
-            Snackbar.make(binding.root, "Nota registrada", Snackbar.LENGTH_SHORT)
-                .setBackgroundTint(android.graphics.Color.parseColor("#1A1A1A"))
-                .setTextColor(android.graphics.Color.WHITE)
-                .show()
-        }
+        OrderHistoryManager.saveOrder(restaurantName, total, itemCount, paymentLabel, networkOrderId = order.id)
 
-        OrderHistoryManager.saveOrder(restaurantName, total, itemCount, paymentLabel)
-
-        val orderNumber = Random.nextInt(1, 99999)
-
-        binding.btnCheckout.isEnabled = false
         binding.btnCheckout.text = "✓  Pedido confirmado"
         binding.btnCheckout.animate()
             .scaleX(1.06f).scaleY(1.06f).setDuration(130).withEndAction {
                 binding.btnCheckout.animate().scaleX(1f).scaleY(1f).setDuration(110).withEndAction {
                     CartRepository.clearCart()
                     val intent = Intent(requireContext(), OrderTrackingActivity::class.java)
-                    intent.putExtra("order_number", orderNumber)
+                    intent.putExtra("order_number", (order.id % 99999).toInt().coerceAtLeast(1))
+                    intent.putExtra("network_order_id", order.id)
                     startActivity(intent)
                     requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                 }.start()

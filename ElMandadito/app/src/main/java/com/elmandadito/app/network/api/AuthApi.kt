@@ -24,9 +24,16 @@ interface AuthApi {
     suspend fun logout(
         @Header("Authorization") bearer: String
     ): Response<Unit>
+
+    @POST("auth/v1/recover")
+    suspend fun recoverPassword(
+        @Body request: RecoverPasswordRequest
+    ): Response<Unit>
 }
 
 // ─── Request bodies ───────────────────────────────────────────────────────────
+
+data class RecoverPasswordRequest(val email: String)
 
 data class SupabaseSignUpRequest(
     val email: String,

@@ -345,13 +345,13 @@ class RestaurantDetailActivity : AppCompatActivity() {
                 .setMessage("Tienes platillos de $current en tu carrito.\n¿Deseas vaciarlo y pedir de $restaurantName?")
                 .setPositiveButton("Vaciar y pedir") { _, _ ->
                     CartRepository.clearCart()
-                    repeat(quantity) { CartRepository.addItem(menuItem, restaurantName, restaurantCategory) }
+                    repeat(quantity) { CartRepository.addItem(menuItem, restaurantName, restaurantCategory, networkId) }
                     showAddedFeedback(menuItem, quantity)
                 }
                 .setNegativeButton("Cancelar", null)
                 .show()
         } else {
-            repeat(quantity) { CartRepository.addItem(menuItem, restaurantName, restaurantCategory) }
+            repeat(quantity) { CartRepository.addItem(menuItem, restaurantName, restaurantCategory, networkId) }
             showAddedFeedback(menuItem, quantity)
         }
     }

@@ -12,13 +12,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import android.graphics.Color
 import com.elmandadito.app.R
 import com.elmandadito.app.data.UserPrefsManager
 import com.elmandadito.app.databinding.ActivityRegisterBinding
+import com.elmandadito.app.network.repository.NotificationNetworkRepository
 import com.elmandadito.app.ui.MainActivity
 import com.elmandadito.app.ui.common.UiState
+import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class RegisterActivity : AppCompatActivity() {
@@ -27,6 +32,8 @@ class RegisterActivity : AppCompatActivity() {
     private val viewModel: AuthViewModel by viewModels()
     private var passwordVisible = false
     private var confirmPasswordVisible = false
+
+    @Inject lateinit var notificationRepository: NotificationNetworkRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,11 +96,22 @@ class RegisterActivity : AppCompatActivity() {
                             UserPrefsManager.setEmail(state.data.user.email)
                             UserPrefsManager.setLoggedIn(true)
                             UserPrefsManager.setStarRating(5)
+                            registerFcmToken()
                             goToMain()
                         }
                         is UiState.Error -> {
                             binding.btnRegister.isEnabled = true
-                            showError(state.message)
+                            // CONFIRM_EMAIL no es un error real, es un paso de verificación
+                            if (state.message.startsWith("CONFIRM_EMAIL:")) {
+                                val msg = state.message.removePrefix("CONFIRM_EMAIL:")
+                                Snackbar.make(binding.root, msg, Snackbar.LENGTH_INDEFINITE)
+                                    .setAction("Entendido") {}
+                                    .setBackgroundTint(Color.parseColor("#1A1A1A"))
+                                    .setTextColor(Color.WHITE)
+                                    .show()
+                            } else {
+                                showError(state.message)
+                            }
                             viewModel.resetState()
                         }
                         is UiState.Idle -> binding.btnRegister.isEnabled = true
@@ -146,6 +164,14 @@ class RegisterActivity : AppCompatActivity() {
         binding.textError.visibility = View.VISIBLE
         ObjectAnimator.ofFloat(binding.textError, "translationX", 0f, -12f, 12f, -8f, 8f, -4f, 4f, 0f)
             .apply { duration = 450; start() }
+    }
+
+    private fun registerFcmToken() {
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            lifecycleScope.launch {
+                runCatching { notificationRepository.registerToken(token) }
+            }
+        }
     }
 
     private fun goToMain() {

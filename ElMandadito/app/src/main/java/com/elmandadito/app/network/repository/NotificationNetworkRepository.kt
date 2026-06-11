@@ -11,10 +11,14 @@ class NotificationNetworkRepository(private val tokenProvider: () -> String?) {
     }
 
     suspend fun registerToken(fcmToken: String): Result<Unit> = runCatching {
-        api.registerToken(RegisterTokenRequest(fcmToken))
+        val response = api.registerToken(RegisterTokenRequest(fcmToken))
+        if (!response.isSuccessful && response.code() != 409) {
+            // 409 Conflict = token ya registrado, es aceptable
+            throw Exception("Error registrando token (${response.code()})")
+        }
     }
 
     suspend fun unregisterToken(fcmToken: String): Result<Unit> = runCatching {
-        api.unregisterToken(fcmToken)
+        api.unregisterToken("eq.$fcmToken")
     }
 }

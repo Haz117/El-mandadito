@@ -36,6 +36,7 @@ data class CartItem(
     val menuItem: MenuItem,
     val restaurantName: String,
     val restaurantCategory: String,
+    val networkRestaurantId: Long = 0L,
     var quantity: Int = 1
 ) {
     val totalPrice: Int get() = menuItem.price * quantity

@@ -1,5 +1,6 @@
 package com.elmandadito.app.network.api
 
+import com.elmandadito.app.network.dto.OrderItemInsertRequest
 import com.elmandadito.app.network.dto.OrderResponse
 import com.elmandadito.app.network.dto.SupabaseCreateOrderRequest
 import retrofit2.Response
@@ -25,4 +26,18 @@ interface OrderApi {
     suspend fun createOrder(
         @Body request: SupabaseCreateOrderRequest
     ): Response<List<OrderResponse>>
+
+    // GET /rest/v1/orders?id=eq.{id}&select=*,order_items(*)
+    @GET("rest/v1/orders")
+    suspend fun getOrderById(
+        @Query("id")     id: String,
+        @Query("select") select: String = "*,order_items(*)"
+    ): Response<List<OrderResponse>>
+
+    // POST /rest/v1/order_items
+    @Headers("Prefer: return=minimal")
+    @POST("rest/v1/order_items")
+    suspend fun createOrderItems(
+        @Body items: List<OrderItemInsertRequest>
+    ): Response<Unit>
 }

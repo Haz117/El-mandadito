@@ -16,48 +16,96 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AnimationUtils
 import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
-import com.google.android.material.snackbar.Snackbar
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.lifecycleScope
 import com.elmandadito.app.R
 import com.elmandadito.app.data.OrderHistoryManager
 import com.elmandadito.app.databinding.ActivityOrderTrackingBinding
 import com.elmandadito.app.databinding.BottomSheetRatingBinding
+import com.elmandadito.app.network.repository.OrderNetworkRepository
+import com.elmandadito.app.ui.profile.ReviewViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class OrderTrackingActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityOrderTrackingBinding
+    private val reviewViewModel: ReviewViewModel by viewModels()
     private val handler = Handler(Looper.getMainLooper())
     private var currentStep = 0
     private var countDownTimer: CountDownTimer? = null
     private var orderNum = 1
+    private var networkOrderId = 0L
 
-    private val driverNames = listOf("Carlos M.", "Luis R.", "Miguel A.", "Jorge P.", "Andrés T.")
+    @Inject lateinit var orderRepository: OrderNetworkRepository
+
+    private val driverNames   = listOf("Carlos M.", "Luis R.", "Miguel A.", "Jorge P.", "Andrés T.")
     private val driverRatings = listOf("4.9", "4.8", "5.0", "4.7", "4.9")
+
+    // Polling interval for real order status (15 seconds)
+    private val POLL_INTERVAL = 15_000L
+    private val statusOrder = listOf("PENDING", "CONFIRMED", "PREPARING", "OUT_FOR_DELIVERY", "DELIVERED")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityOrderTrackingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        orderNum = intent.getIntExtra("order_number", 1)
+        orderNum       = intent.getIntExtra("order_number", 1)
+        networkOrderId = intent.getLongExtra("network_order_id", 0L)
+
         binding.textOrderNumber.text = "Pedido #${orderNum.toString().padStart(5, '0')}"
 
         val driverIdx = orderNum % driverNames.size
-        binding.textDriverName.text = driverNames[driverIdx]
+        binding.textDriverName.text    = driverNames[driverIdx]
         binding.textDriverInitial.text = driverNames[driverIdx].first().uppercase()
-        binding.textDriverRating.text = driverRatings[driverIdx]
+        binding.textDriverRating.text  = driverRatings[driverIdx]
 
         binding.btnBackHome.setOnClickListener { navigateHome() }
         binding.btnShareOrder.setOnClickListener { shareOrder() }
 
         startTracking()
         startScooterFloat()
+
+        if (networkOrderId > 0L) scheduleStatusPoll()
     }
+
+    // ─── Status polling ───────────────────────────────────────────────────────
+
+    private fun scheduleStatusPoll() {
+        handler.postDelayed({
+            if (!isDestroyed && !isFinishing) {
+                pollStatus()
+                scheduleStatusPoll()
+            }
+        }, POLL_INTERVAL)
+    }
+
+    private fun pollStatus() {
+        lifecycleScope.launch {
+            orderRepository.getOrderById(networkOrderId).onSuccess { order ->
+                val targetStep = when (order.status.uppercase()) {
+                    "CONFIRMED"        -> 1
+                    "PREPARING"        -> 2
+                    "OUT_FOR_DELIVERY" -> 3
+                    "DELIVERED"        -> 4
+                    else               -> return@onSuccess
+                }
+                while (currentStep < targetStep) advanceStep()
+            }
+        }
+    }
+
+    // ─── UI ───────────────────────────────────────────────────────────────────
 
     private fun startScooterFloat() {
         ObjectAnimator.ofFloat(binding.imgScooter, "translationY", 0f, -14f, 0f).apply {
@@ -92,13 +140,12 @@ class OrderTrackingActivity : AppCompatActivity() {
                 val secs = (millisUntilFinished / 1000) % 60
                 binding.textCountdown.text = "⏱  %02d:%02d".format(mins, secs)
             }
-            override fun onFinish() {
-                binding.textCountdown.text = "⏱  00:00"
-            }
+            override fun onFinish() { binding.textCountdown.text = "⏱  00:00" }
         }.start()
     }
 
     private fun advanceStep() {
+        if (currentStep >= 4) return
         currentStep++
         val timeNow = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
 
@@ -147,10 +194,10 @@ class OrderTrackingActivity : AppCompatActivity() {
     }
 
     private fun shareOrder() {
-        val text = "📦 Pedido El Mandadito\n" +
+        val text = "Pedido El Mandadito\n" +
             "Número: #${orderNum.toString().padStart(5, '0')}\n" +
             "Estado: ${binding.textStatusMain.text}\n" +
-            "¡Pidiendo con El Mandadito! 🛵"
+            "¡Pidiendo con El Mandadito!"
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, text)
@@ -194,6 +241,10 @@ class OrderTrackingActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             OrderHistoryManager.updateLatestOrderRating(selectedRating)
+            // Enviar calificación a Supabase si tenemos el ID del pedido
+            if (networkOrderId > 0L) {
+                reviewViewModel.submitReview(networkOrderId, selectedRating, null)
+            }
             dialog.dismiss()
             Snackbar.make(binding.root, "¡Gracias por tu calificación!", Snackbar.LENGTH_SHORT)
                 .setBackgroundTint(android.graphics.Color.parseColor("#1A1A1A"))
@@ -202,7 +253,6 @@ class OrderTrackingActivity : AppCompatActivity() {
         }
 
         sheetBinding.btnSkipRating.setOnClickListener { dialog.dismiss() }
-
         dialog.show()
     }
 
@@ -217,7 +267,7 @@ class OrderTrackingActivity : AppCompatActivity() {
         }
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_scooter)
-            .setContentTitle("¡Pedido entregado! 🛵")
+            .setContentTitle("¡Pedido entregado!")
             .setContentText("Tu mandadito ha llegado. ¡Buen provecho!")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)

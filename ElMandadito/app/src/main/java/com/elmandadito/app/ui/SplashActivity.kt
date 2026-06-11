@@ -18,8 +18,7 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class SplashActivity : AppCompatActivity() {
 
-    // Cambiar a false para volver a activar el login
-    private val BYPASS_LOGIN = true
+    private val BYPASS_LOGIN = false
 
     private lateinit var binding: ActivitySplashBinding
 

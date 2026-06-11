@@ -1,12 +1,12 @@
 package com.elmandadito.app.network.repository
 
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.elmandadito.app.data.dataStore
 import com.elmandadito.app.network.RetrofitClient
 import com.elmandadito.app.network.api.AuthApi
+import com.elmandadito.app.network.api.RecoverPasswordRequest
 import com.elmandadito.app.network.api.SupabaseLoginRequest
 import com.elmandadito.app.network.api.SupabaseSignUpRequest
 import com.elmandadito.app.network.dto.AuthResponse
@@ -20,9 +20,9 @@ import java.net.SocketTimeoutException
 class AuthRepository(private val context: Context) {
 
     companion object {
-        private val JWT_KEY     = stringPreferencesKey("jwt_token")
-        private val USER_ID_KEY = stringPreferencesKey("user_id")
-        private val USER_NAME_KEY = stringPreferencesKey("user_name")
+        private val JWT_KEY        = stringPreferencesKey("jwt_token")
+        private val USER_ID_KEY    = stringPreferencesKey("user_id")
+        private val USER_NAME_KEY  = stringPreferencesKey("user_name")
         private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
     }
 
@@ -49,7 +49,14 @@ class AuthRepository(private val context: Context) {
                 )
             )
         } else {
-            throw Exception("Email o contraseña incorrectos")
+            val errorBody = response.errorBody()?.string() ?: ""
+            when {
+                errorBody.contains("email_not_confirmed", ignoreCase = true) ->
+                    throw Exception("Confirma tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.")
+                errorBody.contains("Invalid login credentials", ignoreCase = true) ->
+                    throw Exception("Email o contraseña incorrectos")
+                else -> throw Exception("Email o contraseña incorrectos")
+            }
         }
     }
 
@@ -61,6 +68,10 @@ class AuthRepository(private val context: Context) {
         val response = api.register(SupabaseSignUpRequest(email, password, meta))
         if (response.isSuccessful && response.body() != null) {
             val sb = response.body()!!
+            // Supabase exige confirmación de email: access_token llega vacío
+            if (sb.accessToken.isBlank()) {
+                throw Exception("CONFIRM_EMAIL:Cuenta creada. Revisa tu correo y confirma tu cuenta para continuar.")
+            }
             saveSession(sb.accessToken, sb.user.id, name, email)
             AuthResponse(
                 token = sb.accessToken,
@@ -74,12 +85,24 @@ class AuthRepository(private val context: Context) {
                 )
             )
         } else {
-            throw Exception("Error al crear la cuenta. Verifica que el email no esté registrado.")
+            val errorBody = response.errorBody()?.string() ?: ""
+            when {
+                errorBody.contains("already registered", ignoreCase = true) ||
+                errorBody.contains("already been registered", ignoreCase = true) ->
+                    throw Exception("Ya existe una cuenta con este correo")
+                else -> throw Exception("Error al crear la cuenta. Verifica que el email no esté registrado.")
+            }
         }
+    }
+
+    suspend fun recoverPassword(email: String): Result<Unit> = safe {
+        val response = api.recoverPassword(RecoverPasswordRequest(email))
+        if (!response.isSuccessful) throw Exception("No se pudo enviar el correo. Verifica la dirección.")
     }
 
     suspend fun getToken(): String?  = tokenFlow.firstOrNull()
     suspend fun getUserId(): String? = context.dataStore.data.map { it[USER_ID_KEY] }.firstOrNull()
+    suspend fun getUserName(): String? = context.dataStore.data.map { it[USER_NAME_KEY] }.firstOrNull()
     suspend fun isLoggedIn(): Boolean = getToken() != null
 
     suspend fun logout() {
@@ -90,9 +113,9 @@ class AuthRepository(private val context: Context) {
 
     private suspend fun saveSession(token: String, userId: String, name: String, email: String) {
         context.dataStore.edit { prefs ->
-            prefs[JWT_KEY]       = token
-            prefs[USER_ID_KEY]   = userId
-            prefs[USER_NAME_KEY] = name
+            prefs[JWT_KEY]        = token
+            prefs[USER_ID_KEY]    = userId
+            prefs[USER_NAME_KEY]  = name
             prefs[USER_EMAIL_KEY] = email
         }
     }
