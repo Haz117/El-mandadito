@@ -968,7 +968,9 @@ private fun AddressDialog(currentSelected: Int, onDismiss: () -> Unit, onSelect:
     )
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Selecciona dirección", fontWeight = FontWeight.Bold, color = NearBlack) },
+        shape = RoundedCornerShape(20.dp),
+        containerColor = AppWhite,
+        title = { Text("Selecciona dirección", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = NearBlack) },
         text = {
             Column {
                 options.forEachIndexed { idx, (label, sub) ->
@@ -978,7 +980,14 @@ private fun AddressDialog(currentSelected: Int, onDismiss: () -> Unit, onSelect:
                             .padding(vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        RadioButton(selected = idx == currentSelected, onClick = { onSelect(idx) })
+                        RadioButton(
+                            selected = idx == currentSelected,
+                            onClick = { onSelect(idx) },
+                            colors = androidx.compose.material3.RadioButtonDefaults.colors(
+                                selectedColor = NearBlack,
+                                unselectedColor = Color(0xFFBBBBBB)
+                            )
+                        )
                         Spacer(Modifier.width(10.dp))
                         Column {
                             Text(label, fontWeight = FontWeight.SemiBold, color = NearBlack, fontSize = 15.sp)
@@ -989,7 +998,11 @@ private fun AddressDialog(currentSelected: Int, onDismiss: () -> Unit, onSelect:
             }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar", color = NearBlack) } }
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar", color = MidGray, fontWeight = FontWeight.Medium)
+            }
+        }
     )
 }
 
@@ -1008,11 +1021,13 @@ private fun FilterDialog(
     )
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Filtros y orden", fontWeight = FontWeight.Bold, color = NearBlack) },
+        shape = RoundedCornerShape(20.dp),
+        containerColor = AppWhite,
+        title = { Text("Filtros y orden", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = NearBlack) },
         text = {
             Column {
-                Text("Ordenar por", color = MidGray, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(bottom = 6.dp))
+                Text("ORDENAR POR", color = MidGray, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.8.sp, modifier = Modifier.padding(bottom = 6.dp))
                 sorts.forEach { (id, label) ->
                     Row(
                         Modifier.fillMaxWidth()
@@ -1020,21 +1035,39 @@ private fun FilterDialog(
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        RadioButton(selected = sortBy == id, onClick = { onSortChange(id) })
+                        RadioButton(
+                            selected = sortBy == id,
+                            onClick = { onSortChange(id) },
+                            colors = androidx.compose.material3.RadioButtonDefaults.colors(
+                                selectedColor = NearBlack,
+                                unselectedColor = Color(0xFFBBBBBB)
+                            )
+                        )
                         Spacer(Modifier.width(10.dp))
                         Text(label, color = NearBlack, fontSize = 14.sp)
                     }
                 }
                 HorizontalDivider(Modifier.padding(vertical = 12.dp), color = Border)
+                Text("FILTROS", color = MidGray, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.8.sp, modifier = Modifier.padding(bottom = 8.dp))
                 Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
                     Text("Solo restaurantes abiertos", color = NearBlack, fontSize = 14.sp)
-                    Switch(checked = openOnly, onCheckedChange = onOpenOnlyChange)
+                    Switch(
+                        checked = openOnly,
+                        onCheckedChange = onOpenOnlyChange,
+                        colors = androidx.compose.material3.SwitchDefaults.colors(
+                            checkedThumbColor = AppWhite,
+                            checkedTrackColor = NearBlack,
+                            uncheckedThumbColor = AppWhite,
+                            uncheckedTrackColor = Color(0xFFBBBBBB)
+                        )
+                    )
                 }
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Listo", fontWeight = FontWeight.Bold, color = NearBlack)
+                Text("Listo", fontWeight = FontWeight.Bold, color = NearBlack, fontSize = 14.sp)
             }
         }
     )
