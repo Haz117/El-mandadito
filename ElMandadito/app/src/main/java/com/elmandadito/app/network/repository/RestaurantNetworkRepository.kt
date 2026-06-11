@@ -14,16 +14,19 @@ class RestaurantNetworkRepository(private val tokenProvider: () -> String?) {
     }
 
     suspend fun getAll(category: String? = null, search: String? = null): Result<List<RestaurantResponse>> =
-        safe { api.getAll(category, search).body()?.data ?: emptyList() }
+        safe { api.getAll(category = category?.let { "eq.$it" }).body() ?: emptyList() }
 
     suspend fun getById(id: Long): Result<RestaurantResponse> =
-        safe { api.getById(id).body()?.data ?: throw Exception("Restaurante no encontrado") }
-
-    suspend fun getNearby(lat: Double, lng: Double): Result<List<RestaurantResponse>> =
-        safe { api.getNearby(lat, lng).body()?.data ?: emptyList() }
+        safe {
+            api.getById("eq.$id").body()?.firstOrNull()
+                ?: throw Exception("Restaurante no encontrado")
+        }
 
     suspend fun getMenu(restaurantId: Long): Result<List<MenuItemResponse>> =
-        safe { api.getMenu(restaurantId).body()?.data ?: emptyList() }
+        safe { api.getMenu("eq.$restaurantId").body() ?: emptyList() }
+
+    suspend fun getNearby(lat: Double, lng: Double): Result<List<RestaurantResponse>> =
+        safe { api.getAll().body() ?: emptyList() }
 
     private suspend fun <T> safe(block: suspend () -> T): Result<T> = try {
         Result.success(block())

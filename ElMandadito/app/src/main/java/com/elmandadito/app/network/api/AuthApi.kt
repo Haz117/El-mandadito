@@ -1,27 +1,56 @@
 package com.elmandadito.app.network.api
 
-import com.elmandadito.app.network.dto.AuthResponse
-import com.elmandadito.app.network.dto.LoginRequest
-import com.elmandadito.app.network.dto.RegisterRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface AuthApi {
 
-    @POST("api/auth/register")
-    suspend fun register(@Body request: RegisterRequest): Response<ApiResponse<AuthResponse>>
+    @POST("auth/v1/signup")
+    suspend fun register(
+        @Body request: SupabaseSignUpRequest
+    ): Response<SupabaseAuthResponse>
 
-    @POST("api/auth/login")
-    suspend fun login(@Body request: LoginRequest): Response<ApiResponse<AuthResponse>>
+    @POST("auth/v1/token")
+    suspend fun login(
+        @Query("grant_type") grantType: String = "password",
+        @Body request: SupabaseLoginRequest
+    ): Response<SupabaseAuthResponse>
 
-    @GET("api/auth/me")
-    suspend fun me(): Response<ApiResponse<Any>>
+    @POST("auth/v1/logout")
+    suspend fun logout(
+        @Header("Authorization") bearer: String
+    ): Response<Unit>
 }
 
-data class ApiResponse<T>(
-    val success: Boolean,
-    val message: String,
-    val data: T?
+// ─── Request bodies ───────────────────────────────────────────────────────────
+
+data class SupabaseSignUpRequest(
+    val email: String,
+    val password: String,
+    val data: Map<String, String> = emptyMap()   // ej: {"name": "Juan"}
+)
+
+data class SupabaseLoginRequest(
+    val email: String,
+    val password: String
+)
+
+// ─── Response ─────────────────────────────────────────────────────────────────
+
+data class SupabaseAuthResponse(
+    val accessToken: String,     // Gson convierte access_token → accessToken con la policy
+    val tokenType: String,
+    val expiresIn: Int,
+    val refreshToken: String,
+    val user: SupabaseUser
+)
+
+data class SupabaseUser(
+    val id: String,              // UUID del usuario
+    val email: String,
+    val userMetadata: Map<String, Any?> = emptyMap()
 )

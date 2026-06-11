@@ -4,30 +4,32 @@ import com.elmandadito.app.network.dto.MenuItemResponse
 import com.elmandadito.app.network.dto.RestaurantResponse
 import retrofit2.Response
 import retrofit2.http.GET
-import retrofit2.http.Path
+import retrofit2.http.Headers
 import retrofit2.http.Query
 
 interface RestaurantApi {
 
-    @GET("api/restaurants")
+    // GET /rest/v1/restaurants?status=eq.ACTIVE&select=*
+    @Headers("Prefer: count=none")
+    @GET("rest/v1/restaurants")
     suspend fun getAll(
-        @Query("category") category: String? = null,
-        @Query("search") search: String? = null
-    ): Response<ApiResponse<List<RestaurantResponse>>>
+        @Query("category") category: String? = null,    // "eq.mexican"
+        @Query("status")   status: String = "eq.ACTIVE",
+        @Query("select")   select: String = "*"
+    ): Response<List<RestaurantResponse>>
 
-    @GET("api/restaurants/{id}")
-    suspend fun getById(@Path("id") id: Long): Response<ApiResponse<RestaurantResponse>>
+    // GET /rest/v1/restaurants?id=eq.5&select=*
+    @GET("rest/v1/restaurants")
+    suspend fun getById(
+        @Query("id")     id: String,                    // "eq.{id}"
+        @Query("select") select: String = "*"
+    ): Response<List<RestaurantResponse>>
 
-    @GET("api/restaurants/nearby")
-    suspend fun getNearby(
-        @Query("lat") lat: Double,
-        @Query("lng") lng: Double,
-        @Query("radiusKm") radiusKm: Double = 10.0
-    ): Response<ApiResponse<List<RestaurantResponse>>>
-
-    @GET("api/restaurants/{restaurantId}/menu")
-    suspend fun getMenu(@Path("restaurantId") restaurantId: Long): Response<ApiResponse<List<MenuItemResponse>>>
-
-    @GET("api/restaurants/{restaurantId}/reviews")
-    suspend fun getReviews(@Path("restaurantId") restaurantId: Long): Response<ApiResponse<List<Any>>>
+    // GET /rest/v1/menu_items?restaurant_id=eq.5&available=eq.true&select=*
+    @GET("rest/v1/menu_items")
+    suspend fun getMenu(
+        @Query("restaurant_id") restaurantId: String,  // "eq.{id}"
+        @Query("available")     available: String = "eq.true",
+        @Query("select")        select: String = "*"
+    ): Response<List<MenuItemResponse>>
 }
