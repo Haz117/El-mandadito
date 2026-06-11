@@ -25,6 +25,11 @@ class SplashActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         UserPrefsManager.init(this)
+        if (!UserPrefsManager.isLoggedIn()) {
+            UserPrefsManager.setLoggedIn(true)
+            if (UserPrefsManager.getName().isBlank()) UserPrefsManager.setName("Usuario")
+            if (UserPrefsManager.getStarRating() == 0) UserPrefsManager.setStarRating(5)
+        }
 
         animateLogo()
 
